@@ -66,7 +66,8 @@ class BotApiClient
 
     async Task<TResult> Post<TPayload, TResult>(string method, TPayload payload, CancellationToken cancellationToken)
     {
-        var content = new StringContent(JsonSerializer.Serialize(payload, SerializerOptions), Encoding.UTF8, "application/json");
+        var json = JsonSerializer.Serialize(payload, SerializerOptions);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
         return await Post<TResult>(method, content, cancellationToken);
     }
 
@@ -132,16 +133,6 @@ class TelegramException : Exception
     }
 }
 
-class User
-{
-    public int id { get; set; }
-    public bool is_bot { get; set; }
-    public string first_name { get; set; }
-    public string last_name { get; set; }
-    public string username { get; set; }
-    public string language_code { get; set; }
-}
-
 class WebhookInfo
 {
     public string url { get; set; }
@@ -174,17 +165,6 @@ class SendMessageParams
     public ReplyKeyboardMarkup reply_markup { get; set; }
 }
 
-class ReplyKeyboardMarkup
-{
-    public KeyboardButton[][] keyboard { get; set; }
-    public bool one_time_keyboard { get; set; }
-}
-
-class KeyboardButton
-{
-    public string text { get; set; }
-}
-
 class Message
 {
     public int message_id { get; set; }
@@ -194,10 +174,31 @@ class Message
     public string text { get; set; }
 }
 
+class User
+{
+    public int id { get; set; }
+    public bool is_bot { get; set; }
+    public string first_name { get; set; }
+    public string last_name { get; set; }
+    public string username { get; set; }
+    public string language_code { get; set; }
+}
+
 class Chat
 {
     public long id { get; set; }
     public string type { get; set; }
+}
+
+class ReplyKeyboardMarkup
+{
+    public KeyboardButton[][] keyboard { get; set; }
+    public bool one_time_keyboard { get; set; }
+}
+
+class KeyboardButton
+{
+    public string text { get; set; }
 }
 
 #pragma warning restore IDE1006 // Naming Styles

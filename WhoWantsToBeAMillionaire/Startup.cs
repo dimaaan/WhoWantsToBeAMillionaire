@@ -35,8 +35,9 @@ class Startup
 
         static Strings LoadStrings()
         {
-            using var speechStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Millionaire.speech.json");
-            using var questionsStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Millionaire.questions.json");
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            using var speechStream = asm.GetManifestResourceStream("Millionaire.speech.json");
+            using var questionsStream = asm.GetManifestResourceStream("Millionaire.questions.json");
             return new Strings
             {
                 Speech = JsonSerializer.DeserializeAsync<Speech>(speechStream).Result,
@@ -62,7 +63,7 @@ class Startup
                 }
                 catch(JsonException ex)
                 {
-                    logger.LogError(ex, "Failed deserialize request");
+                    logger.LogError(ex, "Failed deserialize request body");
                     context.Response.StatusCode = 400;
                 }
             });
