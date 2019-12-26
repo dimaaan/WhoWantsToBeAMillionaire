@@ -211,7 +211,6 @@ class GameService
             template,
             question.RightAnswer,
             question.RightAnswerText,
-            ScoreTable[level + 1],
             ScoreTable[level]
         );
     }
