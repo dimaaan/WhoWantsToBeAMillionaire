@@ -26,6 +26,10 @@ class Startup
         services.AddHttpClient<BotApiClient>(c => {
             c.BaseAddress = new Uri($@"https://api.telegram.org/bot{Configuration["Telegram:ApiKey"]}/");
         });
+        services.AddSingleton(provider => new StateSerializerService(
+            Environment.IsDevelopment() ? "./state.json" : "/var/tmp/millionaire/state.json",
+            provider.GetService<ILogger<StateSerializerService>>()
+        ));
         services.AddSingleton<GameService>();
 
         if (Environment.IsDevelopment())

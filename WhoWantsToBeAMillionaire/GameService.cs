@@ -4,14 +4,15 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-class GameService
+class GameService : IDisposable
 {
     readonly BotApiClient BotApi;
     readonly Strings Strings;
     readonly ILogger<GameService> Logger;
+    readonly ConcurrentDictionary<long, States.State> Games;
+    readonly StateSerializerService StateSerializer;
 
     static readonly Random Rnd = new Random();
-    static readonly ConcurrentDictionary<long, States.State> Games = new ConcurrentDictionary<long, States.State>();
     static readonly int[] ScoreTable = {
         0,
         100,
@@ -56,11 +57,18 @@ class GameService
         one_time_keyboard = true
     };
 
-    public GameService(BotApiClient botApi, Strings strings, ILogger<GameService> logger)
+    public GameService(BotApiClient botApi, Strings strings, ILogger<GameService> logger, StateSerializerService stateSerializer)
     {
         BotApi = botApi;
         Strings = strings;
         Logger = logger;
+        StateSerializer = stateSerializer;
+        Games = new ConcurrentDictionary<long, States.State>(stateSerializer.Load());
+    }
+
+    public void Dispose()
+    {
+        StateSerializer.Save(Games);
     }
 
     public async Task UpdateGame(Update update, CancellationToken cancellationToken)
