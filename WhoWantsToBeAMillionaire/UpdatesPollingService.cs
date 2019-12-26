@@ -41,7 +41,7 @@ class UpdatesPollingService : BackgroundService
                 }
             }
         }
-        catch (TaskCanceledException _)
+        catch (TaskCanceledException)
         {
         }
 
