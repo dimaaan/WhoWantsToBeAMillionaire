@@ -63,7 +63,7 @@ class Startup
                 }
                 catch(JsonException ex)
                 {
-                    logger.LogError(ex, "Failed deserialize request body");
+                    logger.LogError(ex, "Failed deserialize request body. content type: {0}", context.Request.ContentType);
                     context.Response.StatusCode = 400;
                 }
             });
