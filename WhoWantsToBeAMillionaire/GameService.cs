@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +11,7 @@ class GameService
     readonly ILogger<GameService> Logger;
 
     static readonly Random Rnd = new Random();
-    static readonly Dictionary<long, States.State> Games = new Dictionary<long, States.State>();
+    static readonly ConcurrentDictionary<long, States.State> Games = new ConcurrentDictionary<long, States.State>();
     static readonly int[] ScoreTable = {
         0,
         100,
@@ -152,7 +152,7 @@ class GameService
                 await AskQuestion(msg, 0, cancellationToken);
                 break;
             case "НЕТ":
-                Games.Remove(msg.chat.id);
+                Games.TryRemove(msg.chat.id, out _);
                 break;
             default:
                 await ReplyTo(msg, "Отвечайте \"да\" или \"нет\"", cancellationToken, YesNoKeyboard);
