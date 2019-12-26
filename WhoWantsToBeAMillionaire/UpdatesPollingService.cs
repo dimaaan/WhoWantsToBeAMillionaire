@@ -30,7 +30,7 @@ class UpdatesPollingService : BackgroundService
                 timeout = 1,
             };
 
-            while (true)
+            while (!stoppingToken.IsCancellationRequested)
             {
                 var updates = await BotApi.GetUpdates(request, stoppingToken);
 
