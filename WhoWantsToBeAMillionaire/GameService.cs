@@ -102,12 +102,9 @@ class GameService : IDisposable
         {
             case "/help":
                 await ReplyTo(msg, "/start начать игру\n/help список команд", cancellationToken);
-                return;
-            case "/start":
-                await StartGame(msg, cancellationToken);
                 break;
+            case "/start":
             default:
-                await ReplyTo(msg, $"Можно было просто сказать /start. Так или иначе... мы начинаем!", cancellationToken);
                 await StartGame(msg, cancellationToken);
                 break;
         }
