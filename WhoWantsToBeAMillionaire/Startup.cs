@@ -68,7 +68,7 @@ class Startup
                 catch(JsonException ex)
                 {
                     var reader = new System.IO.StreamReader(context.Request.Body, System.Text.Encoding.UTF8);
-                    logger.LogError(ex, "Failed deserialize request body\nContent type: {0}\nContent: {1}", context.Request.ContentType, reader.ReadToEnd());
+                    logger.LogError(ex, "Failed deserialize request body\nContent type: {ContentType}\nContent: {Content}", context.Request.ContentType, reader.ReadToEnd());
                     context.Response.StatusCode = 400;
                 }
             });
@@ -81,18 +81,18 @@ class Startup
         }
 
         var user = tg.GetMe(lifetime.ApplicationStopping).Result;
-        logger.LogInformation("Working as {0}", user.username);
+        logger.LogInformation("Working as {User}", user.username);
     }
 
     void SetWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
         var webHookInfo = tg.GetWebhookInfo(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
-            logger.LogWarning("Tegeram webhook already set to {0}. Overriding...", webHookInfo.url);
+            logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
 
         var webHookaddress = Configuration["Telegram:WebhookAddress"];
         tg.SetWebHook(webHookaddress, Configuration["Telegram:Certificate"], cancellationToken).Wait();
-        logger.LogInformation("Webhook set: {0}", webHookaddress);
+        logger.LogInformation("Webhook set: {Url}", webHookaddress);
     }
 
     void RemoveWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)

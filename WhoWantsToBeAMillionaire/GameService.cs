@@ -92,7 +92,7 @@ class GameService : IDisposable
         }
         else
         {
-            Logger.LogDebug("Update message wasn't handled");
+            Logger.LogWarning("Update message wasn't handled");
         }
     }
 

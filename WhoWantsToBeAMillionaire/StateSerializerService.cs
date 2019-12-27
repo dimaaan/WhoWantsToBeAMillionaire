@@ -22,7 +22,7 @@ class StateSerializerService
             yield break;
         }
 
-        Logger.LogInformation("Loading state from {0}...", StateFile);
+        Logger.LogInformation("Loading state from {File}...", StateFile);
 
         using var stateStream = File.OpenRead(StateFile);
         var counter = 0;
@@ -44,12 +44,12 @@ class StateSerializerService
             counter++;
         }
 
-        Logger.LogInformation("State loaded. Active games: {0}", counter);
+        Logger.LogInformation("State loaded. Active games: {Count}", counter);
     }
 
     public void Save(IEnumerable<KeyValuePair<long, States.State>> games)
     {
-        Logger.LogInformation("Saving state to {0}...", StateFile);
+        Logger.LogInformation("Saving state to {File}...", StateFile);
 
         using var stream = File.Create(StateFile);
         using var writer = new Utf8JsonWriter(stream);
@@ -78,6 +78,6 @@ class StateSerializerService
         }
         writer.WriteEndObject();
 
-        Logger.LogInformation("{0} games saved", counter);
+        Logger.LogInformation("{Count} games saved", counter);
     }
 }
