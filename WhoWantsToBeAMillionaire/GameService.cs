@@ -130,22 +130,19 @@ class GameService : IDisposable
         if (answer == question.RightAnswer)
         {
             var newLevel = (byte)(state.Level + 1);
-            await ReplyTo(msg, PickRandomRightAnswerSpeech(newLevel, question), cancellationToken);
 
             if (state.Level < 15)
             {
-                await AskQuestion(msg, newLevel, cancellationToken);
+                await AskQuestion(msg, PickRandomRightAnswerSpeech(newLevel, question), newLevel, cancellationToken);
             }
             else
             {
-                await ReplyTo(msg, PickRandomSpeechWin(), cancellationToken);
-                await GameOver(msg, cancellationToken);
+                await GameOver(msg, PickRandomSpeechWin(), cancellationToken);
             }
         }
         else
         {
-            await ReplyTo(msg, PickRandomReplyToWrongAnswer(question), cancellationToken);
-            await GameOver(msg, cancellationToken);
+            await GameOver(msg, PickRandomReplyToWrongAnswer(question), cancellationToken);
         }
     }
 
@@ -154,7 +151,7 @@ class GameService : IDisposable
         switch(msg.text?.Trim().ToUpper())
         {
             case "ДА":
-                await AskQuestion(msg, 0, cancellationToken);
+                await AskQuestion(msg, "", 0, cancellationToken);
                 break;
             case "НЕТ":
                 Games.TryRemove(msg.chat.id, out _);
@@ -167,16 +164,17 @@ class GameService : IDisposable
 
     async Task StartGame(Message msg, CancellationToken cancellationToken)
     {
-        await ReplyTo(msg, PickRandomGreetings(msg.from.first_name), cancellationToken);
-        await AskQuestion(msg, 0, cancellationToken);
+        await AskQuestion(msg, PickRandomGreetings(msg.from.first_name), 0, cancellationToken);
     }
 
-    async Task AskQuestion(Message msg, byte level, CancellationToken cancellationToken)
+    async Task AskQuestion(Message msg, string preamble, byte level, CancellationToken cancellationToken)
     {
         var questionIndex = PickRandomIndex(Strings.Questions[level]);
         var question = Strings.Questions[level][questionIndex];
+        var questionText = PickRandomAskQuestionSpeech(msg.from.first_name, level, question);
+        var text = $"{preamble}\n{questionText}";
 
-        await ReplyTo(msg, PickRandomAskQuestionSpeech(msg.from.first_name, level, question), cancellationToken, AnswerKeyboard);
+        await ReplyTo(msg, text, cancellationToken, AnswerKeyboard);
 
         Games[msg.chat.id] = new States.Playing()
         {
@@ -185,10 +183,11 @@ class GameService : IDisposable
         };
     }
 
-    async Task GameOver(Message msg, CancellationToken cancellationToken)
+    async Task GameOver(Message msg, string preamble, CancellationToken cancellationToken)
     {
         Games[msg.chat.id] = new States.Over();
-        await ReplyTo(msg, PickRandomTryAgainSpeech(), cancellationToken, YesNoKeyboard);
+        var text = $"{preamble}\n{PickRandomTryAgainSpeech()}";
+        await ReplyTo(msg, text, cancellationToken, YesNoKeyboard);
     }
 
     async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup? markup = null) =>
