@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>millionaire</AssemblyName>
     <UserSecretsId>75c6d409-9627-496d-979d-19f66b05f557</UserSecretsId>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

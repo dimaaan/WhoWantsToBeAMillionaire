@@ -118,12 +118,12 @@ class BotApiClient
 class TelegramEmptyResponse
 {
     public bool ok { get; set; }
-    public string description { get; set; }
+    public string? description { get; set; }
 }
 
 class TelegramResponse<T> : TelegramEmptyResponse
 {
-    public T result { get; set; }
+    public T result { get; set; } = default!;
 }
 
 class TelegramException : Exception
@@ -135,13 +135,13 @@ class TelegramException : Exception
 
 class WebhookInfo
 {
-    public string url { get; set; }
+    public string url { get; set; } = default!;
     public bool has_custom_certificate { get; set; }
     public int pending_update_count { get; set; }
     public int? last_error_date { get; set; }
     public int? last_error_message { get; set; }
     public int? max_connections { get; set; }
-    public string[] allowed_updates { get; set; }
+    public string[]? allowed_updates { get; set; }
 }
 
 class UpdateParams
@@ -149,56 +149,56 @@ class UpdateParams
     public int? offset { get; set; }
     public int? limit { get; set; }
     public int? timeout { get; set; }
-    public string[] allowed_updates { get; set; }
+    public string[]? allowed_updates { get; set; }
 }
 
 class Update
 {
     public int update_id { get; set; }
-    public Message message { get; set; }
+    public Message? message { get; set; }
 }
 
 class SendMessageParams
 {
     public long chat_id { get; set; }
-    public string text { get; set; }
-    public ReplyKeyboardMarkup reply_markup { get; set; }
+    public string text { get; set; } = default!;
+    public ReplyKeyboardMarkup? reply_markup { get; set; }
 }
 
 class Message
 {
     public int message_id { get; set; }
-    public User from { get; set; }
+    public User from { get; set; } = default!;
     public int date { get; set; }
-    public Chat chat { get; set; }
-    public string text { get; set; }
+    public Chat chat { get; set; } = default!;
+    public string? text { get; set; }
 }
 
 class User
 {
     public int id { get; set; }
     public bool is_bot { get; set; }
-    public string first_name { get; set; }
-    public string last_name { get; set; }
-    public string username { get; set; }
-    public string language_code { get; set; }
+    public string first_name { get; set; } = default!;
+    public string? last_name { get; set; }
+    public string? username { get; set; }
+    public string? language_code { get; set; }
 }
 
 class Chat
 {
     public long id { get; set; }
-    public string type { get; set; }
+    public string type { get; set; } = default!;
 }
 
 class ReplyKeyboardMarkup
 {
-    public KeyboardButton[][] keyboard { get; set; }
-    public bool one_time_keyboard { get; set; }
+    public KeyboardButton[][] keyboard { get; set; } = default!;
+    public bool? one_time_keyboard { get; set; }
 }
 
 class KeyboardButton
 {
-    public string text { get; set; }
+    public string text { get; set; } = default!;
 }
 
 #pragma warning restore IDE1006 // Naming Styles

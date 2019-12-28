@@ -112,7 +112,7 @@ class GameService : IDisposable
 
     async Task OnPlayingState(States.Playing state, Message msg, CancellationToken cancellationToken)
     {
-        char? answer = msg.text.Trim().ToUpper() switch {
+        char? answer = msg.text?.Trim().ToUpper() switch {
             "A" => 'A',
             "B" => 'B',
             "C" => 'C',
@@ -151,7 +151,7 @@ class GameService : IDisposable
 
     async Task OnOverState(Message msg, CancellationToken cancellationToken)
     {
-        switch(msg.text.Trim().ToUpper())
+        switch(msg.text?.Trim().ToUpper())
         {
             case "ДА":
                 await AskQuestion(msg, 0, cancellationToken);
@@ -191,7 +191,7 @@ class GameService : IDisposable
         await ReplyTo(msg, PickRandomTryAgainSpeech(), cancellationToken, YesNoKeyboard);
     }
 
-    async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup markup = null) =>
+    async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup? markup = null) =>
         await Send(new SendMessageParams
         {
             chat_id = msg.chat.id,
@@ -273,17 +273,17 @@ namespace States
 
 class Strings
 {
-    public Question[][] Questions { get; set; }
-    public Speech Speech { get; set; }
+    public Question[][] Questions { get; set; } = default!;
+    public Speech Speech { get; set; } = default!;
 }
 
 class Question
 {
-    public string Text { get; set; }
-    public string A { get; set; }
-    public string B { get; set; }
-    public string C { get; set; }
-    public string D { get; set; }
+    public string Text { get; set; } = default!;
+    public string A { get; set; } = default!;
+    public string B { get; set; } = default!;
+    public string C { get; set; } = default!;
+    public string D { get; set; } = default!;
     public char RightAnswer { get; set; }
     public string RightAnswerText
     {
@@ -303,7 +303,7 @@ class Speech
     /// <summary>
     /// 0 - user name
     /// </summary>
-    public string[] StartGame { get; set; }
+    public string[] StartGame { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
@@ -317,7 +317,7 @@ class Speech
     /// 7 - question sum
     /// 8 - earned money
     /// </summary>
-    public string[] AskQuestion { get; set; }
+    public string[] AskQuestion { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
@@ -326,7 +326,7 @@ class Speech
     /// 2 - question sum
     /// 3 - earned money
     /// </summary>
-    public string[] RightAnswer { get; set; }
+    public string[] RightAnswer { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
@@ -335,9 +335,9 @@ class Speech
     /// 2 - question sum
     /// 3 - earned money
     /// </summary>
-    public string[] WrongAnswer { get; set; }
+    public string[] WrongAnswer { get; set; } = default!;
 
-    public string[] Win { get; set; }
+    public string[] Win { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
@@ -347,18 +347,18 @@ class Speech
     /// 3 - friend's variant char
     /// 4 - friend's variant text
     /// </summary>
-    public string[][] CallFriend { get; set; }
+    public string[][] CallFriend { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
     /// 0 - user name
     /// 1 - question
     /// </summary>
-    public string[] PeopleHelp { get; set; }
+    public string[] PeopleHelp { get; set; } = default!;
 
-    public string[] FiftyFifty { get; set; }
+    public string[] FiftyFifty { get; set; } = default!;
 
-    public string[] TryAgain { get; set; }
+    public string[] TryAgain { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
@@ -367,5 +367,5 @@ class Speech
     /// 2 - question sum
     /// 3 - earned money
     /// </summary>
-    public string[] EarnedCantFire { get; set; }
+    public string[] EarnedCantFire { get; set; } = default!;
 }
