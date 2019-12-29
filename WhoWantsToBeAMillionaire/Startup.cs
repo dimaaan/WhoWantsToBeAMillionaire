@@ -25,18 +25,19 @@ class Startup
         services.AddSingleton(LoadTexts<Speech>("Millionaire.speech.json"));
         services.AddSingleton(LoadTexts<Question[][]>("Millionaire.questions.json"));
         services.AddHttpClient<BotApiClient>(c => {
-            c.BaseAddress = new Uri($@"https://api.telegram.org/bot{Configuration["Telegram:ApiKey"]}/");
+            var key = Configuration["Telegram:ApiKey"];
+            c.BaseAddress = new Uri($@"https://api.telegram.org/bot{key}/");
         });
-        services.AddSingleton(provider => new StateSerializerService(
+        services.AddSingleton(provider => new StateSerializer(
             Environment.IsDevelopment() ? "./state.json" : "/var/tmp/millionaire/state.json",
-            provider.GetService<ILogger<StateSerializerService>>()
+            provider.GetService<ILogger<StateSerializer>>()
         ));
-        services.AddSingleton<NarratorService>();
-        services.AddSingleton<GameService>();
+        services.AddSingleton<Narrator>();
+        services.AddSingleton<Game>();
 
         if (Environment.IsDevelopment())
         {
-            services.AddHostedService<UpdatesPollingService>();
+            services.AddHostedService<UpdatesPoller>();
         }
 
         static T LoadTexts<T>(string resourceName)
@@ -47,7 +48,7 @@ class Startup
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, BotApiClient tg, ILogger<Startup> logger, GameService gameService)
+    public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, BotApiClient tg, ILogger<Startup> logger, Game gameService)
     {
         app.UseRouting();
 

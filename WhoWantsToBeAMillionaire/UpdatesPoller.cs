@@ -3,13 +3,13 @@ using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
-class UpdatesPollingService : BackgroundService
+class UpdatesPoller : BackgroundService
 {
-    readonly ILogger<UpdatesPollingService> Logger;
+    readonly ILogger<UpdatesPoller> Logger;
     readonly BotApiClient BotApi;
-    readonly GameService GameService;
+    readonly Game GameService;
 
-    public UpdatesPollingService(BotApiClient botApi, GameService gameService, ILogger<UpdatesPollingService> logger)
+    public UpdatesPoller(BotApiClient botApi, Game gameService, ILogger<UpdatesPoller> logger)
     {
         Logger = logger;
         BotApi = botApi;

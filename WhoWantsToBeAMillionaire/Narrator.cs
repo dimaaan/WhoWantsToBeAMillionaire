@@ -1,6 +1,6 @@
 ﻿using System;
 
-class NarratorService
+class Narrator
 {
     static readonly Random Rnd = new Random();
 
@@ -25,7 +25,7 @@ class NarratorService
 
     readonly Speech Speech;
 
-    public NarratorService(Speech speech)
+    public Narrator(Speech speech)
     {
         Speech = speech;
     }

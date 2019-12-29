@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-class StateSerializerService
+class StateSerializer
 {
     readonly string StateFile;
-    readonly ILogger<StateSerializerService> Logger;
+    readonly ILogger<StateSerializer> Logger;
 
-    public StateSerializerService(string stateFile, ILogger<StateSerializerService> logger)
+    public StateSerializer(string stateFile, ILogger<StateSerializer> logger)
     {
         StateFile = stateFile;
         Logger = logger;

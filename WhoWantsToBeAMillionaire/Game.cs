@@ -4,14 +4,14 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-class GameService : IDisposable
+class Game : IDisposable
 {
     readonly BotApiClient BotApi;
     readonly Question[][] Questions;
-    readonly NarratorService Narrator;
-    readonly ILogger<GameService> Logger;
+    readonly Narrator Narrator;
+    readonly ILogger<Game> Logger;
     readonly ConcurrentDictionary<long, States.State> Games;
-    readonly StateSerializerService StateSerializer;
+    readonly StateSerializer StateSerializer;
 
     static readonly ReplyKeyboardMarkup AnswerKeyboard = new ReplyKeyboardMarkup()
     {
@@ -45,7 +45,7 @@ class GameService : IDisposable
         public const string Help = "/help";
     }
 
-    public GameService(BotApiClient botApi, Question[][] questions, NarratorService narrator, ILogger<GameService> logger, StateSerializerService stateSerializer)
+    public Game(BotApiClient botApi, Question[][] questions, Narrator narrator, ILogger<Game> logger, StateSerializer stateSerializer)
     {
         BotApi = botApi;
         Questions = questions;
