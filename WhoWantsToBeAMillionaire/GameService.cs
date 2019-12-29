@@ -7,30 +7,12 @@ using System.Threading.Tasks;
 class GameService : IDisposable
 {
     readonly BotApiClient BotApi;
-    readonly Strings Strings;
+    readonly Question[][] Questions;
+    readonly NarratorService Narrator;
     readonly ILogger<GameService> Logger;
     readonly ConcurrentDictionary<long, States.State> Games;
     readonly StateSerializerService StateSerializer;
 
-    static readonly Random Rnd = new Random();
-    static readonly int[] ScoreTable = {
-        0,
-        100,
-        200,
-        300,
-        500,
-        1000,
-        2000,
-        4000,
-        8000,
-        16000,
-        32000,
-        64000,
-        125000,
-        250000,
-        500000,
-        1000000
-    };
     static readonly ReplyKeyboardMarkup AnswerKeyboard = new ReplyKeyboardMarkup()
     {
         keyboard = new KeyboardButton[][] { 
@@ -63,10 +45,11 @@ class GameService : IDisposable
         public const string Help = "/help";
     }
 
-    public GameService(BotApiClient botApi, Strings strings, ILogger<GameService> logger, StateSerializerService stateSerializer)
+    public GameService(BotApiClient botApi, Question[][] questions, NarratorService narrator, ILogger<GameService> logger, StateSerializerService stateSerializer)
     {
         BotApi = botApi;
-        Strings = strings;
+        Questions = questions;
+        Narrator = narrator;
         Logger = logger;
         StateSerializer = stateSerializer;
         Games = new ConcurrentDictionary<long, States.State>(stateSerializer.Load());
@@ -141,23 +124,23 @@ class GameService : IDisposable
             return;
         }
 
-        var question = Strings.Questions[state.Level][state.Question];
+        var question = Questions[state.Level][state.Question];
         if (answer == question.RightAnswer)
         {
             var newLevel = (byte)(state.Level + 1);
 
             if (state.Level < 15)
             {
-                await AskQuestion(msg, PickRandomRightAnswerSpeech(newLevel, question), newLevel, cancellationToken);
+                await AskQuestion(msg, Narrator.PickRandomRightAnswerSpeech(newLevel, question), newLevel, cancellationToken);
             }
             else
             {
-                await GameOver(msg, PickRandomSpeechWin(), cancellationToken);
+                await GameOver(msg, Narrator.PickRandomSpeechWin(), cancellationToken);
             }
         }
         else
         {
-            await GameOver(msg, PickRandomReplyToWrongAnswer(question), cancellationToken);
+            await GameOver(msg, Narrator.PickRandomReplyToWrongAnswer(question), cancellationToken);
         }
     }
 
@@ -188,14 +171,14 @@ class GameService : IDisposable
 
     async Task StartGame(Message msg, CancellationToken cancellationToken)
     {
-        await AskQuestion(msg, PickRandomGreetings(msg.from.first_name), 0, cancellationToken);
+        await AskQuestion(msg, Narrator.PickRandomGreetings(msg.from.first_name), 0, cancellationToken);
     }
 
     async Task AskQuestion(Message msg, string preamble, byte level, CancellationToken cancellationToken)
     {
-        var questionIndex = PickRandomIndex(Strings.Questions[level]);
-        var question = Strings.Questions[level][questionIndex];
-        var questionText = PickRandomAskQuestionSpeech(msg.from.first_name, level, question);
+        var questionIndex = Narrator.PickRandomIndex(Questions[level]);
+        var question = Questions[level][questionIndex];
+        var questionText = Narrator.PickRandomAskQuestionSpeech(msg.from.first_name, level, question);
         var text = $"{preamble}\n{questionText}";
 
         await ReplyTo(msg, text, cancellationToken, AnswerKeyboard);
@@ -210,7 +193,7 @@ class GameService : IDisposable
     async Task GameOver(Message msg, string preamble, CancellationToken cancellationToken)
     {
         Games[msg.chat.id] = new States.Over();
-        var text = $"{preamble}\n{PickRandomTryAgainSpeech()}";
+        var text = $"{preamble}\n{Narrator.PickRandomTryAgainSpeech()}";
         await ReplyTo(msg, text, cancellationToken, YesNoKeyboard);
     }
 
@@ -224,57 +207,6 @@ class GameService : IDisposable
 
     async Task Send(SendMessageParams payload, CancellationToken cancellationToken) =>
         await BotApi.SendMessageAsync(payload, cancellationToken);
-
-    string PickRandomSpeechWin() =>
-        PickRandomItem(Strings.Speech.Win);
-
-    string PickRandomRightAnswerSpeech(byte level, Question question)
-    {
-        var template = PickRandomItem(Strings.Speech.RightAnswer);
-
-        if(level == 5 || level == 10)
-            template = $"{template}\n{PickRandomItem(Strings.Speech.EarnedCantFire)}";
-
-        return String.Format(
-            template,
-            question.RightAnswer,
-            question.RightAnswerText,
-            ScoreTable[level]
-        );
-    }
-
-    string PickRandomTryAgainSpeech() =>
-        PickRandomItem(Strings.Speech.TryAgain);
-
-    string PickRandomReplyToWrongAnswer(Question question) =>
-        String.Format(
-            PickRandomItem(Strings.Speech.WrongAnswer), 
-            question.RightAnswer, 
-            question.RightAnswerText
-        );
-
-    string PickRandomAskQuestionSpeech(string userName, byte level, Question question) =>
-        String.Format(
-            PickRandomItem(Strings.Speech.AskQuestion),
-            userName,
-            question.Text,
-            question.A,
-            question.B,
-            question.C,
-            question.D,
-            level + 1,
-            ScoreTable[level + 1],
-            ScoreTable[level]
-        );
-
-    string PickRandomGreetings(string name) =>
-        String.Format(PickRandomItem(Strings.Speech.StartGame), name);
-
-    static TItem PickRandomItem<TItem>(TItem[] array) =>
-        array[PickRandomIndex(array)];
-
-    static short PickRandomIndex<TItem>(TItem[] c) =>
-        (short) Rnd.Next(0, c.Length);
 }
 
 namespace States
@@ -292,12 +224,6 @@ namespace States
     class Over : State
     {
     }
-}
-
-class Strings
-{
-    public Question[][] Questions { get; set; } = default!;
-    public Speech Speech { get; set; } = default!;
 }
 
 class Question
@@ -319,76 +245,4 @@ class Question
             _ => throw new InvalidOperationException($"{nameof(RightAnswer)} has invalid value: {RightAnswer}")
         };
     }
-}
-
-class Speech
-{
-    /// <summary>
-    /// 0 - user name
-    /// </summary>
-    public string[] StartGame { get; set; } = default!;
-
-    /// <summary>
-    /// Placeholders:
-    /// 0 - user name
-    /// 1 - question
-    /// 2 - variant A
-    /// 3 - variant B
-    /// 4 - variant C
-    /// 5 - variant D
-    /// 6 - question no
-    /// 7 - question sum
-    /// 8 - earned money
-    /// </summary>
-    public string[] AskQuestion { get; set; } = default!;
-
-    /// <summary>
-    /// Placeholders:
-    /// 0 - variant char,
-    /// 1 - variant text
-    /// 2 - question sum
-    /// 3 - earned money
-    /// </summary>
-    public string[] RightAnswer { get; set; } = default!;
-
-    /// <summary>
-    /// Placeholders:
-    /// 0 - variant char,
-    /// 1 - variant text
-    /// 2 - question sum
-    /// 3 - earned money
-    /// </summary>
-    public string[] WrongAnswer { get; set; } = default!;
-
-    public string[] Win { get; set; } = default!;
-
-    /// <summary>
-    /// Placeholders:
-    /// 0 - user name
-    /// 1 - friend name
-    /// 2 - question
-    /// 3 - friend's variant char
-    /// 4 - friend's variant text
-    /// </summary>
-    public string[][] CallFriend { get; set; } = default!;
-
-    /// <summary>
-    /// Placeholders:
-    /// 0 - user name
-    /// 1 - question
-    /// </summary>
-    public string[] PeopleHelp { get; set; } = default!;
-
-    public string[] FiftyFifty { get; set; } = default!;
-
-    public string[] TryAgain { get; set; } = default!;
-
-    /// <summary>
-    /// Placeholders:
-    /// 0 - variant char,
-    /// 1 - variant text
-    /// 2 - question sum
-    /// 3 - earned money
-    /// </summary>
-    public string[] EarnedCantFire { get; set; } = default!;
 }

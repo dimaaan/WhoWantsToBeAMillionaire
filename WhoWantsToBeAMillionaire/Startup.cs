@@ -22,7 +22,8 @@ class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddSingleton(LoadStrings());
+        services.AddSingleton(LoadTexts<Speech>("Millionaire.speech.json"));
+        services.AddSingleton(LoadTexts<Question[][]>("Millionaire.questions.json"));
         services.AddHttpClient<BotApiClient>(c => {
             c.BaseAddress = new Uri($@"https://api.telegram.org/bot{Configuration["Telegram:ApiKey"]}/");
         });
@@ -30,6 +31,7 @@ class Startup
             Environment.IsDevelopment() ? "./state.json" : "/var/tmp/millionaire/state.json",
             provider.GetService<ILogger<StateSerializerService>>()
         ));
+        services.AddSingleton<NarratorService>();
         services.AddSingleton<GameService>();
 
         if (Environment.IsDevelopment())
@@ -37,16 +39,10 @@ class Startup
             services.AddHostedService<UpdatesPollingService>();
         }
 
-        static Strings LoadStrings()
+        static T LoadTexts<T>(string resourceName)
         {
-            var asm = System.Reflection.Assembly.GetExecutingAssembly();
-            using var speechStream = asm.GetManifestResourceStream("Millionaire.speech.json");
-            using var questionsStream = asm.GetManifestResourceStream("Millionaire.questions.json");
-            return new Strings
-            {
-                Speech = JsonSerializer.DeserializeAsync<Speech>(speechStream).Result,
-                Questions = JsonSerializer.DeserializeAsync<Question[][]>(questionsStream).Result,
-            };
+            using var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            return JsonSerializer.DeserializeAsync<T>(stream).Result;
         }
     }
 
