@@ -57,6 +57,12 @@ class GameService : IDisposable
         one_time_keyboard = true
     };
 
+    static class Commands
+    {
+        public const string Start = "/start";
+        public const string Help = "/help";
+    }
+
     public GameService(BotApiClient botApi, Strings strings, ILogger<GameService> logger, StateSerializerService stateSerializer)
     {
         BotApi = botApi;
@@ -100,10 +106,10 @@ class GameService : IDisposable
     {
         switch (msg.text)
         {
-            case "/help":
-                await ReplyTo(msg, "/start начать игру\n/help список команд", cancellationToken);
+            case Commands.Help:
+                await Help(msg, cancellationToken);
                 break;
-            case "/start":
+            case Commands.Start:
             default:
                 await StartGame(msg, cancellationToken);
                 break;
@@ -112,6 +118,15 @@ class GameService : IDisposable
 
     async Task OnPlayingState(States.Playing state, Message msg, CancellationToken cancellationToken)
     {
+        if(msg.text == Commands.Start)
+        {
+            await ReplyTo(msg, "Вы уже в игре!", cancellationToken);
+        }
+        else if(msg.text == Commands.Help)
+        {
+            await Help(msg, cancellationToken);
+        }
+
         char? answer = msg.text?.Trim().ToUpper() switch {
             "A" => 'A',
             "B" => 'B',
@@ -148,18 +163,27 @@ class GameService : IDisposable
 
     async Task OnOverState(Message msg, CancellationToken cancellationToken)
     {
-        switch(msg.text?.Trim().ToUpper())
+        switch(msg.text?.Trim().ToLower())
         {
-            case "ДА":
+            case "да":
+            case Commands.Start:
                 await AskQuestion(msg, "", 0, cancellationToken);
                 break;
-            case "НЕТ":
+            case "нет":
                 Games.TryRemove(msg.chat.id, out _);
+                break;
+            case Commands.Help:
+                await Help(msg, cancellationToken);
                 break;
             default:
                 await ReplyTo(msg, "Отвечайте \"да\" или \"нет\"", cancellationToken, YesNoKeyboard);
                 break;
         }
+    }
+
+    async Task Help(Message msg, CancellationToken cancellationToken)
+    {
+        await ReplyTo(msg, "/start начать игру\n/help список команд", cancellationToken);
     }
 
     async Task StartGame(Message msg, CancellationToken cancellationToken)
