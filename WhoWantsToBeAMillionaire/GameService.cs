@@ -199,7 +199,7 @@ class GameService : IDisposable
         }, cancellationToken);
 
     async Task Send(SendMessageParams payload, CancellationToken cancellationToken) =>
-        await BotApi.SendMessage(payload, cancellationToken);
+        await BotApi.SendMessageAsync(payload, cancellationToken);
 
     string PickRandomSpeechWin() =>
         PickRandomItem(Strings.Speech.Win);

@@ -19,17 +19,17 @@ class BotApiClient
         Client = client;
     }
 
-    public async Task<User> GetMe(CancellationToken cancellationToken)
+    public async Task<User> GetMeAsync(CancellationToken cancellationToken)
     {
-        return await Get<User>("getMe", cancellationToken);
+        return await GetAsync<User>("getMe", cancellationToken);
     }
 
-    public async Task<WebhookInfo> GetWebhookInfo(CancellationToken cancellationToken)
+    public async Task<WebhookInfo> GetWebhookInfoAsync(CancellationToken cancellationToken)
     {
-        return await Get<WebhookInfo>("getWebhookInfo", cancellationToken);
+        return await GetAsync<WebhookInfo>("getWebhookInfo", cancellationToken);
     }
 
-    public async Task SetWebHook(string uri, string certificatePath, CancellationToken cancellationToken)
+    public async Task SetWebHookAsync(string uri, string certificatePath, CancellationToken cancellationToken)
     {
         var content = new MultipartFormDataContent
         {
@@ -37,62 +37,62 @@ class BotApiClient
             { new ByteArrayContent(File.ReadAllBytes(certificatePath)), "certificate", certificatePath }
         };
 
-        var result = await Post<bool>("setWebhook", content, cancellationToken);
+        var result = await PostAsync<bool>("setWebhook", content, cancellationToken);
 
         if (!result)
             throw new TelegramException("Setting webhook failed");
     }
 
-    public async Task DeleteWebhook(CancellationToken cancellationToken)
+    public async Task DeleteWebhookAsync(CancellationToken cancellationToken)
     {
-        await Post("deleteWebhook", cancellationToken);
+        await PostAsync("deleteWebhook", cancellationToken);
     }
 
-    public async Task<Update[]> GetUpdates(UpdateParams payload, CancellationToken cancellationToken)
+    public async Task<Update[]> GetUpdatesAsync(UpdateParams payload, CancellationToken cancellationToken)
     {
-        return await Post<UpdateParams, Update[]>("getUpdates", payload, cancellationToken);
+        return await PostAsync<UpdateParams, Update[]>("getUpdates", payload, cancellationToken);
     }
 
-    public async Task<Message> SendMessage(SendMessageParams payload, CancellationToken cancellationToken)
+    public async Task<Message> SendMessageAsync(SendMessageParams payload, CancellationToken cancellationToken)
     {
-        return await Post<SendMessageParams, Message>("sendMessage", payload, cancellationToken);
+        return await PostAsync<SendMessageParams, Message>("sendMessage", payload, cancellationToken);
     }
 
-    async Task<T> Get<T>(string method, CancellationToken cancellationToken)
+    async Task<T> GetAsync<T>(string method, CancellationToken cancellationToken)
     {
         var responseMessage = await Client.GetAsync(method, cancellationToken);
-        return await DeserializeResult<T>(responseMessage, cancellationToken);
+        return await DeserializeResultAsync<T>(responseMessage, cancellationToken);
     }
 
-    async Task<TResult> Post<TPayload, TResult>(string method, TPayload payload, CancellationToken cancellationToken)
+    async Task<TResult> PostAsync<TPayload, TResult>(string method, TPayload payload, CancellationToken cancellationToken)
     {
         var json = JsonSerializer.Serialize(payload, SerializerOptions);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        return await Post<TResult>(method, content, cancellationToken);
+        return await PostAsync<TResult>(method, content, cancellationToken);
     }
 
-    async Task<TResult> Post<TResult>(string method, HttpContent content, CancellationToken cancellationToken)
+    async Task<TResult> PostAsync<TResult>(string method, HttpContent content, CancellationToken cancellationToken)
     {
         var responseMessage = await Client.PostAsync(method, content, cancellationToken);
-        return await DeserializeResult<TResult>(responseMessage, cancellationToken);
+        return await DeserializeResultAsync<TResult>(responseMessage, cancellationToken);
     }
 
-    async Task Post(string method, CancellationToken cancellationToken)
+    async Task PostAsync(string method, CancellationToken cancellationToken)
     {
         var responseMessage = await Client.PostAsync(method, null, cancellationToken);
-        var result = await Deserialize<TelegramEmptyResponse>(responseMessage, cancellationToken);
+        var result = await DeserializeAsync<TelegramEmptyResponse>(responseMessage, cancellationToken);
 
         EnsureOk(result);
     }
 
-    async Task<T> DeserializeResult<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
+    async Task<T> DeserializeResultAsync<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
     {
-        var response = await Deserialize<TelegramResponse<T>>(responseMessage, cancellationToken);
+        var response = await DeserializeAsync<TelegramResponse<T>>(responseMessage, cancellationToken);
         EnsureOk(response);
         return response.result;
     }
 
-    async Task<T> Deserialize<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+    async Task<T> DeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         response.EnsureSuccessStatusCode();
 

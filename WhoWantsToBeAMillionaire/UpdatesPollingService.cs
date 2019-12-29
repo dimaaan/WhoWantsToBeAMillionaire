@@ -22,7 +22,7 @@ class UpdatesPollingService : BackgroundService
 
         try
         {
-            await BotApi.DeleteWebhook(stoppingToken);
+            await BotApi.DeleteWebhookAsync(stoppingToken);
 
             var request = new UpdateParams
             {
@@ -32,7 +32,7 @@ class UpdatesPollingService : BackgroundService
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var updates = await BotApi.GetUpdates(request, stoppingToken);
+                var updates = await BotApi.GetUpdatesAsync(request, stoppingToken);
 
                 foreach (var update in updates)
                 {

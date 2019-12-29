@@ -81,24 +81,24 @@ class Startup
             lifetime.ApplicationStopping.Register(() => RemoveWebHook(tg, logger, lifetime.ApplicationStopped));
         }
 
-        var user = tg.GetMe(lifetime.ApplicationStopping).Result;
+        var user = tg.GetMeAsync(lifetime.ApplicationStopping).Result;
         logger.LogInformation("Working as {User}", user.username);
     }
 
     void SetWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
-        var webHookInfo = tg.GetWebhookInfo(cancellationToken).Result;
+        var webHookInfo = tg.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
             logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
 
         var webHookaddress = Configuration["Telegram:WebhookAddress"];
-        tg.SetWebHook(webHookaddress, Configuration["Telegram:Certificate"], cancellationToken).Wait();
+        tg.SetWebHookAsync(webHookaddress, Configuration["Telegram:Certificate"], cancellationToken).Wait();
         logger.LogInformation("Webhook set: {Url}", webHookaddress);
     }
 
     void RemoveWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
-        tg.DeleteWebhook(cancellationToken).Wait();
+        tg.DeleteWebhookAsync(cancellationToken).Wait();
         logger.LogInformation("Webhook removed");
     }
 }
