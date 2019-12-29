@@ -35,7 +35,7 @@ class StateSerializerService
                 1 => new States.Playing
                 {
                     Level = el.Value.GetProperty("level").GetByte(),
-                    Question = el.Value.GetProperty("question").GetInt32()
+                    Question = el.Value.GetProperty("question").GetInt16()
                 },
                 2 => new States.Over(),
                 _ => throw new Exception($"Unknown type {type}. id: {id}")

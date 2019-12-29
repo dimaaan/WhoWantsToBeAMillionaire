@@ -273,8 +273,8 @@ class GameService : IDisposable
     static TItem PickRandomItem<TItem>(TItem[] array) =>
         array[PickRandomIndex(array)];
 
-    static int PickRandomIndex<TItem>(TItem[] c) =>
-        Rnd.Next(0, c.Length);
+    static short PickRandomIndex<TItem>(TItem[] c) =>
+        (short) Rnd.Next(0, c.Length);
 }
 
 namespace States
@@ -286,7 +286,7 @@ namespace States
     class Playing : State
     {
         public byte Level;
-        public int Question;
+        public short Question;
     }
 
     class Over : State
