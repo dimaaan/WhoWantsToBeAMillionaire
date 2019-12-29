@@ -18,7 +18,7 @@ class StateSerializerService
     public IEnumerable<KeyValuePair<long, States.State>> Load() {
         if (!File.Exists(StateFile))
         {
-            Logger.LogInformation("No state found");
+            Logger.LogInformation("State not found at {File}", StateFile);
             yield break;
         }
 
