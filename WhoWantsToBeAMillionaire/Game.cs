@@ -17,12 +17,12 @@ class Game : IDisposable
     {
         keyboard = new KeyboardButton[][] { 
             new [] { 
-                new KeyboardButton { text = "A" },
-                new KeyboardButton { text = "B" },
+                new KeyboardButton { text = Answers.A },
+                new KeyboardButton { text = Answers.B },
             }, 
             new [] {
-                new KeyboardButton { text = "C" },
-                new KeyboardButton { text = "D" },
+                new KeyboardButton { text = Answers.C },
+                new KeyboardButton { text = Answers.D },
             } 
         },
         one_time_keyboard = false
@@ -43,6 +43,14 @@ class Game : IDisposable
     {
         public const string Start = "/start";
         public const string Help = "/help";
+    }
+
+    static class Answers
+    {
+        public const string A = "A";
+        public const string B = "B";
+        public const string C = "C";
+        public const string D = "D";
     }
 
     public Game(BotApiClient botApi, Question[][] questions, Narrator narrator, ILogger<Game> logger, StateSerializer stateSerializer)
@@ -111,10 +119,10 @@ class Game : IDisposable
         }
 
         char? answer = msg.text?.Trim().ToUpper() switch {
-            "A" => 'A',
-            "B" => 'B',
-            "C" => 'C',
-            "D" => 'D',
+            Answers.A => 'A',
+            Answers.B => 'B',
+            Answers.C => 'C',
+            Answers.D => 'D',
             _ => null
         };
 
