@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,21 +14,6 @@ class Game : IDisposable
     readonly ILogger<Game> Logger;
     readonly ConcurrentDictionary<long, States.State> Games;
     readonly StateSerializer StateSerializer;
-
-    static readonly ReplyKeyboardMarkup AnswerKeyboard = new ReplyKeyboardMarkup()
-    {
-        keyboard = new KeyboardButton[][] { 
-            new [] { 
-                new KeyboardButton { text = Answers.A },
-                new KeyboardButton { text = Answers.B },
-            }, 
-            new [] {
-                new KeyboardButton { text = Answers.C },
-                new KeyboardButton { text = Answers.D },
-            } 
-        },
-        one_time_keyboard = false
-    };
 
     static readonly ReplyKeyboardMarkup YesNoKeyboard = new ReplyKeyboardMarkup()
     {
@@ -43,14 +30,6 @@ class Game : IDisposable
     {
         public const string Start = "/start";
         public const string Help = "/help";
-    }
-
-    static class Answers
-    {
-        public const string A = "A";
-        public const string B = "B";
-        public const string C = "C";
-        public const string D = "D";
     }
 
     public Game(BotApiClient botApi, Question[][] questions, Narrator narrator, ILogger<Game> logger, StateSerializer stateSerializer)
@@ -80,7 +59,7 @@ class Game : IDisposable
                     await OnStartState(update.message, cancellationToken);
                     break;
                 case States.Playing playing: 
-                    await OnPlayingState(playing, update.message, cancellationToken);
+                    await OnPlayingState(update.message, playing, cancellationToken);
                     break;
                 case States.Over _:
                     await OnOverState(update.message, cancellationToken);
@@ -102,23 +81,30 @@ class Game : IDisposable
                 break;
             case Commands.Start:
             default:
-                await StartGame(msg, cancellationToken);
+                await StartGame(msg, Narrator.PickRandomGreetings(msg.from.first_name), cancellationToken);
                 break;
         }
     }
 
-    async Task OnPlayingState(States.Playing state, Message msg, CancellationToken cancellationToken)
+    async Task OnPlayingState(Message msg, States.Playing state, CancellationToken cancellationToken)
     {
-        if(msg.text == Commands.Start)
+        var text = msg.text?.Trim()?.ToLowerInvariant();
+
+        if(text == Commands.Start)
         {
             await ReplyTo(msg, "Вы уже в игре!", cancellationToken);
         }
-        else if(msg.text == Commands.Help)
+        else if(text == Commands.Help)
         {
             await Help(msg, cancellationToken);
         }
+        else if(text == Answers.FiftyFifty)
+        {
+            await FiftyFifty(msg, state, cancellationToken);
+            return;
+        }
 
-        char? answer = msg.text?.Trim().ToUpper() switch {
+        char? answer = text?.ToUpperInvariant() switch {
             Answers.A => 'A',
             Answers.B => 'B',
             Answers.C => 'C',
@@ -139,7 +125,7 @@ class Game : IDisposable
 
             if (state.Level < 15)
             {
-                await AskQuestion(msg, Narrator.PickRandomRightAnswerSpeech(newLevel, question), newLevel, cancellationToken);
+                await AskQuestion(msg, Narrator.PickRandomRightAnswerSpeech(newLevel, question), newLevel, state.UsedHints, cancellationToken);
             }
             else
             {
@@ -158,7 +144,7 @@ class Game : IDisposable
         {
             case "да":
             case Commands.Start:
-                await AskQuestion(msg, "", 0, cancellationToken);
+                await StartGame(msg, "", cancellationToken);
                 break;
             case "нет":
                 Games.TryRemove(msg.chat.id, out _);
@@ -177,25 +163,98 @@ class Game : IDisposable
         await ReplyTo(msg, "/start начать игру\n/help список команд", cancellationToken);
     }
 
-    async Task StartGame(Message msg, CancellationToken cancellationToken)
+    async Task StartGame(Message msg, string greetings, CancellationToken cancellationToken)
     {
-        await AskQuestion(msg, Narrator.PickRandomGreetings(msg.from.first_name), 0, cancellationToken);
+        await AskQuestion(msg, greetings, 0, default, cancellationToken);
     }
 
-    async Task AskQuestion(Message msg, string preamble, byte level, CancellationToken cancellationToken)
+    async Task AskQuestion(Message msg, string preamble, byte level, States.Playing.Hints usedHints, CancellationToken cancellationToken)
     {
         var questionIndex = Narrator.PickRandomIndex(Questions[level]);
         var question = Questions[level][questionIndex];
         var questionText = Narrator.PickRandomAskQuestionSpeech(msg.from.first_name, level, question);
         var text = $"{preamble}\n{questionText}";
-
-        await ReplyTo(msg, text, cancellationToken, AnswerKeyboard);
-
-        Games[msg.chat.id] = new States.Playing()
+        var state = new States.Playing()
         {
             Level = level,
-            Question = questionIndex
+            Question = questionIndex,
+            UsedHints = usedHints
         };
+        var keyboard = new ReplyKeyboardMarkup()
+        {
+            keyboard = new KeyboardButton[][] 
+            {
+                new [] 
+                {
+                    new KeyboardButton { text = Answers.A },
+                    new KeyboardButton { text = Answers.B },
+                },
+                new [] 
+                {
+                    new KeyboardButton { text = Answers.C },
+                    new KeyboardButton { text = Answers.D },
+                },
+                HintButtonsRow(state.IsFiftyFiftyAvailable).ToArray()
+            },
+            one_time_keyboard = false
+        };
+
+        await ReplyTo(msg, text, cancellationToken, keyboard);
+
+        Games[msg.chat.id] = state;
+    }
+
+    async Task FiftyFifty(Message msg, States.Playing state, CancellationToken cancellationToken)
+    {
+        if (!state.IsFiftyFiftyAvailable)
+        {
+            await ReplyTo(msg, "Вы уже использовали подсказку 50/50!", cancellationToken);
+            return;
+        }
+
+        var question = Questions[state.Level][state.Question];
+        var (text, removed1, removed2) = Narrator.FiftyFifty(question);
+        await ReplyTo(msg, text, cancellationToken, Keyboard());
+
+        state.UsedHints |= States.Playing.Hints.FiftyFifty;
+
+        ReplyKeyboardMarkup Keyboard()
+        {
+            return new ReplyKeyboardMarkup
+            {
+                keyboard = Buttons(),
+                one_time_keyboard = false,
+            };
+
+            IEnumerable<IEnumerable<KeyboardButton>> Buttons()
+            {
+                yield return AnswerButtonsRow(Answers.A, Answers.B);
+                yield return AnswerButtonsRow(Answers.C, Answers.D);
+                yield return HintButtonsRow(false);
+
+                IEnumerable<KeyboardButton> AnswerButtonsRow(string left, string right)
+                {
+                    if (NotRemoved(left, removed1, removed2, out var leftButton))
+                        yield return leftButton!;
+
+                    if (NotRemoved(right, removed1, removed2, out var rigthButton))
+                        yield return rigthButton!;
+
+                    static bool NotRemoved(string variant, string removed1, string removed2, out KeyboardButton? button)
+                    {
+                        var notRemoved = variant != removed1 && variant != removed2;
+                        button = notRemoved ? new KeyboardButton { text = variant.ToString() } : null;
+                        return notRemoved;
+                    }
+                }
+            }
+        }
+    }
+
+    IEnumerable<KeyboardButton> HintButtonsRow(bool withFiftyFifty)
+    {
+        if (withFiftyFifty)
+            yield return new KeyboardButton { text = Answers.FiftyFifty };
     }
 
     async Task GameOver(Message msg, string preamble, CancellationToken cancellationToken)
@@ -227,6 +286,11 @@ namespace States
     {
         public byte Level;
         public short Question;
+        public Hints UsedHints;
+
+        public bool IsFiftyFiftyAvailable => !UsedHints.HasFlag(Hints.FiftyFifty);
+
+        [Flags] public enum Hints : byte { FiftyFifty = 1, PeopleHelp = 2, CallFriend = 4 }
     }
 
     class Over : State
@@ -253,4 +317,13 @@ class Question
             _ => throw new InvalidOperationException($"{nameof(RightAnswer)} has invalid value: {RightAnswer}")
         };
     }
+}
+
+static class Answers
+{
+    public const string A = "A";
+    public const string B = "B";
+    public const string C = "C";
+    public const string D = "D";
+    public const string FiftyFifty = "50/50";
 }

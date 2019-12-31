@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -192,7 +193,7 @@ class Chat
 
 class ReplyKeyboardMarkup
 {
-    public KeyboardButton[][] keyboard { get; set; } = default!;
+    public IEnumerable<IEnumerable<KeyboardButton>> keyboard { get; set; } = default!;
     public bool? one_time_keyboard { get; set; }
 }
 

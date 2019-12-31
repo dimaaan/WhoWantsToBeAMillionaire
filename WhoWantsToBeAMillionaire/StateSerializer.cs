@@ -35,7 +35,8 @@ class StateSerializer
                 1 => new States.Playing
                 {
                     Level = el.Value.GetProperty("level").GetByte(),
-                    Question = el.Value.GetProperty("question").GetInt16()
+                    Question = el.Value.GetProperty("question").GetInt16(),
+                    UsedHints = (States.Playing.Hints) el.Value.GetProperty("hints").GetByte(),
                 },
                 2 => new States.Over(),
                 _ => throw new Exception($"Unknown type {type}. id: {id}")
@@ -66,6 +67,7 @@ class StateSerializer
                     writer.WriteNumber("type", 1);
                     writer.WriteNumber("level", p.Level);
                     writer.WriteNumber("question", p.Question);
+                    writer.WriteNumber("hints", (byte)p.UsedHints);
                     break;
                 case States.Over _:
                     writer.WriteNumber("type", 2);

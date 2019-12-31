@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 class Narrator
 {
@@ -69,17 +70,41 @@ class Narrator
         );
     }
 
+    public (string text, string removed1, string removed2) FiftyFifty(Question question)
+    {
+        var wrongsAnswers = new List<string> { Answers.A, Answers.B, Answers.C, Answers.D };
+        wrongsAnswers.Remove(question.RightAnswer.ToString());
+        var removed1 = PickRandomItem(wrongsAnswers);
+        wrongsAnswers.Remove(removed1);
+        var removed2 = PickRandomItem(wrongsAnswers);
+        var text = new System.Text.StringBuilder(PickRandomItem(Speech.FiftyFifty));
+        text.Append('\n');
+        text.Append(question.Text);
+        text.Append('\n');
+        AppendIfNotRemoved(Answers.A, question.A);
+        AppendIfNotRemoved(Answers.B, question.B);
+        AppendIfNotRemoved(Answers.C, question.C);
+        AppendIfNotRemoved(Answers.D, question.D);
+
+        return (text.ToString(), removed1, removed2);
+
+        void AppendIfNotRemoved(string letter, string variant) {
+            if (letter != removed1 && letter != removed2)
+                text.AppendFormat("{0}: {1}\n", letter, variant);
+        }
+    }
+
     public string PickRandomTryAgainSpeech() =>
         PickRandomItem(Speech.TryAgain);
 
     public string PickRandomSpeechWin() =>
         PickRandomItem(Speech.Win);
 
-    TItem PickRandomItem<TItem>(TItem[] array) =>
-        array[PickRandomIndex(array)];
+    TItem PickRandomItem<TItem>(IList<TItem> items) =>
+        items[PickRandomIndex(items)];
 
-    public short PickRandomIndex<TItem>(TItem[] c) =>
-        (short)Rnd.Next(0, c.Length);
+    public short PickRandomIndex<TItem>(IList<TItem> c) =>
+        (short)Rnd.Next(0, c.Count);
 }
 
 class Speech
