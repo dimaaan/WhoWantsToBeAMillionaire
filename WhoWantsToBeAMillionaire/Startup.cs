@@ -24,7 +24,8 @@ class Startup
     {
         services.AddSingleton(LoadTexts<Speech>("Millionaire.speech.json"));
         services.AddSingleton(LoadTexts<Question[][]>("Millionaire.questions.json"));
-        services.AddHttpClient<BotApiClient>(c => {
+        services.AddHttpClient<BotApiClient>(c =>
+        {
             var key = Configuration["Telegram:ApiKey"];
             c.BaseAddress = new Uri($@"https://api.telegram.org/bot{key}/");
         });
@@ -54,25 +55,29 @@ class Startup
 
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapPost("/{key}", async context =>
+            endpoints.MapPost(new UriBuilder(Configuration["Telegram:WebhookAddress"]).Path, async context =>
             {
+                Update update;
+
                 try
                 {
-                    var update = await JsonSerializer.DeserializeAsync<Update>(context.Request.Body, null, context.RequestAborted);
-                    await gameService.UpdateGame(update, context.RequestAborted);
-                    context.Response.StatusCode = 200;
+                    update = await JsonSerializer.DeserializeAsync<Update>(context.Request.Body, null, context.RequestAborted);
                 }
-                catch(JsonException ex)
+                catch (JsonException ex)
                 {
                     var reader = new System.IO.StreamReader(context.Request.Body, System.Text.Encoding.UTF8);
                     var text = await reader.ReadToEndAsync();
                     logger.LogError(ex, "Failed deserialize request body\nContent type: {ContentType}\nContent: {Content}", context.Request.ContentType, text);
                     context.Response.StatusCode = 400;
+                    return;
                 }
+
+                await gameService.UpdateGame(update, context.RequestAborted);
+                context.Response.StatusCode = 200;
             });
         });
 
-        if(!Environment.IsDevelopment())
+        if (!Environment.IsDevelopment())
         {
             lifetime.ApplicationStarted.Register(() => SetWebHook(tg, logger, lifetime.ApplicationStopping));
             lifetime.ApplicationStopping.Register(() => RemoveWebHook(tg, logger, lifetime.ApplicationStopped));
