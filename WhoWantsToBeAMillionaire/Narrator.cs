@@ -31,10 +31,10 @@ class Narrator
         Speech = speech;
     }
 
-    public string PickRandomGreetings(string name) =>
-        String.Format(PickRandomItem(Speech.StartGame), name);
+    public string Greetings(string userName) =>
+        String.Format(PickRandomItem(Speech.StartGame), userName);
 
-    public string PickRandomAskQuestionSpeech(string userName, byte level, Question question) =>
+    public string AskQuestionSpeech(string userName, byte level, Question question) =>
         String.Format(
             PickRandomItem(Speech.AskQuestion),
             userName,
@@ -48,14 +48,14 @@ class Narrator
             ScoreTable[level]
         );
 
-    public string PickRandomReplyToWrongAnswer(Question question) =>
+    public string ReplyToWrongAnswer(Question question) =>
         String.Format(
             PickRandomItem(Speech.WrongAnswer),
             question.RightAnswer,
             question.RightAnswerText
         );
 
-    public string PickRandomRightAnswerSpeech(byte level, Question question)
+    public string RightAnswerSpeech(byte level, Question question)
     {
         var template = PickRandomItem(Speech.RightAnswer);
 
@@ -106,17 +106,17 @@ class Narrator
         return String.Format(template, userName, friendName, question.Text, friendVariant, question.AnswerOf(friendVariant));
     }
 
-    public string PickRandomTryAgainSpeech() =>
+    public string TryAgainSpeech() =>
         PickRandomItem(Speech.TryAgain);
 
-    public string PickRandomSpeechWin() =>
+    public string WinSpeech() =>
         PickRandomItem(Speech.Win);
 
     TItem PickRandomItem<TItem>(IList<TItem> items) =>
         items[PickRandomIndex(items)];
 
-    public short PickRandomIndex<TItem>(IList<TItem> c) =>
-        (short)Rnd.Next(0, c.Count);
+    public short PickRandomIndex<T>(ICollection<T> c) =>
+        (short)Rnd.Next(0, c.Count - 1);
 
     static readonly double[] ProbabilityOfRightHintTable = {
         .7,

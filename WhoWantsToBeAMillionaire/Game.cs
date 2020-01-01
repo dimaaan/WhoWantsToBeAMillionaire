@@ -80,7 +80,7 @@ class Game : IDisposable
                 break;
             case Commands.Start:
             default:
-                await StartGame(msg, Narrator.PickRandomGreetings(msg.from.first_name), cancellationToken);
+                await StartGame(msg, Narrator.Greetings(msg.from.first_name), cancellationToken);
                 break;
         }
     }
@@ -129,16 +129,16 @@ class Game : IDisposable
 
             if (state.Level < 15)
             {
-                await AskQuestion(msg, Narrator.PickRandomRightAnswerSpeech(newLevel, question), newLevel, state.UsedHints, cancellationToken);
+                await AskQuestion(msg, Narrator.RightAnswerSpeech(newLevel, question), newLevel, state.UsedHints, cancellationToken);
             }
             else
             {
-                await GameOver(msg, Narrator.PickRandomSpeechWin(), cancellationToken);
+                await GameOver(msg, Narrator.WinSpeech(), cancellationToken);
             }
         }
         else
         {
-            await GameOver(msg, Narrator.PickRandomReplyToWrongAnswer(question), cancellationToken);
+            await GameOver(msg, Narrator.ReplyToWrongAnswer(question), cancellationToken);
         }
     }
 
@@ -176,7 +176,7 @@ class Game : IDisposable
     {
         var questionIndex = Narrator.PickRandomIndex(Questions[level]);
         var question = Questions[level][questionIndex];
-        var questionText = Narrator.PickRandomAskQuestionSpeech(msg.from.first_name, level, question);
+        var questionText = Narrator.AskQuestionSpeech(msg.from.first_name, level, question);
         var text = $"{preamble}\n{questionText}";
         var newState = new States.Playing(level, questionIndex, usedHints);
 
@@ -263,7 +263,7 @@ class Game : IDisposable
     async Task GameOver(Message msg, string preamble, CancellationToken cancellationToken)
     {
         Games[msg.chat.id] = new States.Over();
-        var text = $"{preamble}\n{Narrator.PickRandomTryAgainSpeech()}";
+        var text = $"{preamble}\n{Narrator.TryAgainSpeech()}";
         await ReplyTo(msg, text, cancellationToken, YesNoKeyboard);
     }
 
