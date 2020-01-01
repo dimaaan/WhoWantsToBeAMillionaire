@@ -65,9 +65,7 @@ class Startup
                 }
                 catch (JsonException ex)
                 {
-                    var reader = new System.IO.StreamReader(context.Request.Body, System.Text.Encoding.UTF8);
-                    var text = await reader.ReadToEndAsync();
-                    logger.LogError(ex, "Failed deserialize request body\nContent type: {ContentType}\nContent: {Content}", context.Request.ContentType, text);
+                    logger.LogError(ex, "Failed deserialize request body\nContent type: {ContentType}", context.Request.ContentType);
                     context.Response.StatusCode = 400;
                     return;
                 }
