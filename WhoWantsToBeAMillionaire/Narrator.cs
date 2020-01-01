@@ -51,8 +51,8 @@ class Narrator
     public string ReplyToWrongAnswer(Question question) =>
         String.Format(
             PickRandomItem(Speech.WrongAnswer),
-            question.RightAnswer,
-            question.RightAnswerText
+            question.RightVariant,
+            question.RightAnswer
         );
 
     public string RightAnswerSpeech(byte level, Question question)
@@ -64,19 +64,19 @@ class Narrator
 
         return String.Format(
             template,
+            question.RightVariant,
             question.RightAnswer,
-            question.RightAnswerText,
             ScoreTable[level]
         );
     }
 
     public (string text, char removed1, char removed2) FiftyFifty(Question question)
     {
-        var wrongsAnswers = new List<char> { 'A', 'B', 'C', 'D' };
-        wrongsAnswers.Remove(question.RightAnswer);
-        var removed1 = PickRandomItem(wrongsAnswers);
-        wrongsAnswers.Remove(removed1);
-        var removed2 = PickRandomItem(wrongsAnswers);
+        var wrongsVariants = new List<char> { 'A', 'B', 'C', 'D' };
+        wrongsVariants.Remove(question.RightVariant);
+        var removed1 = PickRandomItem(wrongsVariants);
+        wrongsVariants.Remove(removed1);
+        var removed2 = PickRandomItem(wrongsVariants);
         var text = new System.Text.StringBuilder(PickRandomItem(Speech.FiftyFifty));
         text.Append('\n');
         text.Append(question.Text);
@@ -103,7 +103,7 @@ class Narrator
 
         var template = String.Join('\n', PickRandomItem(Speech.CallFriend));
         var friendName = PickRandomItem(Speech.FriendsNames);
-        var friendVariant = GuessAnswer(availableVariants, question.RightAnswer, level);
+        var friendVariant = GuessAnswer(availableVariants, question.RightVariant, level);
         return String.Format(template, userName, friendName, question.Text, friendVariant, question.AnswerOf(friendVariant));
     }
 

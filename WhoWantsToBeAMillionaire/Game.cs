@@ -124,7 +124,7 @@ class Game : IDisposable
         }
 
         var question = Questions[state.Level][state.Question];
-        if (answer == question.RightAnswer)
+        if (answer == question.RightVariant)
         {
             var newLevel = (byte)(state.Level + 1);
 
@@ -316,9 +316,9 @@ class Question
     public string B { get; set; } = default!;
     public string C { get; set; } = default!;
     public string D { get; set; } = default!;
-    public char RightAnswer { get; set; }
+    public char RightVariant { get; set; }
 
-    public string RightAnswerText => AnswerOf(RightAnswer);
+    public string RightAnswer => AnswerOf(RightVariant);
 
     public string AnswerOf(char variant) => variant switch
     {
