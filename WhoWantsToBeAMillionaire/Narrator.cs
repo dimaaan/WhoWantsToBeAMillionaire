@@ -88,7 +88,8 @@ class Narrator
 
         return (text.ToString(), removed1, removed2);
 
-        void AppendIfNotRemoved(char variant, string answer) {
+        void AppendIfNotRemoved(char variant, string answer)
+        {
             if (variant != removed1 && variant != removed2)
                 text.AppendFormat("{0}: {1}\n", variant, answer);
         }

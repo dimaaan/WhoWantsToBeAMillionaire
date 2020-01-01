@@ -57,7 +57,7 @@ class Game : IDisposable
                 case null:
                     await OnStartState(update.message, cancellationToken);
                     break;
-                case States.Playing playing: 
+                case States.Playing playing:
                     await OnPlayingState(update.message, playing, cancellationToken);
                     break;
                 case States.Over _:
@@ -89,26 +89,27 @@ class Game : IDisposable
     {
         var text = msg.text?.Trim()?.ToLowerInvariant();
 
-        if(text == Commands.Start)
+        if (text == Commands.Start)
         {
             await ReplyTo(msg, "Вы уже в игре!", cancellationToken);
         }
-        else if(text == Commands.Help)
+        else if (text == Commands.Help)
         {
             await Help(msg, cancellationToken);
         }
-        else if(text == Answers.FiftyFifty)
+        else if (text == Answers.FiftyFifty)
         {
             await FiftyFifty(msg, state, cancellationToken);
             return;
         }
-        else if(text == Answers.CallFriend)
+        else if (text == Answers.CallFriend)
         {
             await CallFirend(msg, state, cancellationToken);
             return;
         }
 
-        char? answer = text?.ToUpperInvariant() switch {
+        char? answer = text?.ToUpperInvariant() switch
+        {
             Answers.A => 'A',
             Answers.B => 'B',
             Answers.C => 'C',
@@ -116,7 +117,7 @@ class Game : IDisposable
             _ => null
         };
 
-        if(answer == null)
+        if (answer == null)
         {
             await ReplyTo(msg, "Отвечайте буквами A, B, C или D", cancellationToken);
             return;
@@ -144,7 +145,7 @@ class Game : IDisposable
 
     async Task OnOverState(Message msg, CancellationToken cancellationToken)
     {
-        switch(msg.text?.Trim().ToLower())
+        switch (msg.text?.Trim().ToLower())
         {
             case "да":
             case Commands.Start:
