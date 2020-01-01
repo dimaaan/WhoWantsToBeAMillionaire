@@ -32,12 +32,13 @@ class StateSerializer
             var type = el.Value.GetProperty("type").GetByte();
             States.State state = type switch
             {
-                1 => new States.Playing
-                {
-                    Level = el.Value.GetProperty("level").GetByte(),
-                    Question = el.Value.GetProperty("question").GetInt16(),
-                    UsedHints = (States.Playing.Hints) el.Value.GetProperty("hints").GetByte(),
-                },
+                1 => new States.Playing(
+                    level: el.Value.GetProperty("level").GetByte(),
+                    question: el.Value.GetProperty("question").GetInt16(),
+                    usedHints: (States.Playing.Hints) el.Value.GetProperty("hints").GetByte(),
+                    removed1: el.Value.TryGetProperty("removed1", out var r1) ? r1.GetString()[0] : default,
+                    removed2: el.Value.TryGetProperty("removed2", out var r2) ? r2.GetString()[0] : default
+                ),
                 2 => new States.Over(),
                 _ => throw new Exception($"Unknown type {type}. id: {id}")
             };
@@ -68,6 +69,10 @@ class StateSerializer
                     writer.WriteNumber("level", p.Level);
                     writer.WriteNumber("question", p.Question);
                     writer.WriteNumber("hints", (byte)p.UsedHints);
+                    if(p.Removed1 != default)
+                        writer.WriteNumber("removed1", (byte)p.Removed1);
+                    if (p.Removed2 != default)
+                        writer.WriteNumber("removed2", (byte)p.Removed2);
                     break;
                 case States.Over _:
                     writer.WriteNumber("type", 2);

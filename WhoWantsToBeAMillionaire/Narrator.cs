@@ -94,11 +94,15 @@ class Narrator
         }
     }
 
-    public string CallFriend(string userName, byte level, Question question)
+    public string CallFriend(string userName, byte level, Question question, char removed1, char removed2)
     {
+        var availableVariants = new List<char> { 'A', 'B', 'C', 'D' };
+        availableVariants.Remove(removed1);
+        availableVariants.Remove(removed2);
+
         var template = String.Join('\n', PickRandomItem(Speech.CallFriend));
         var friendName = PickRandomItem(Speech.FriendsNames);
-        var friendVariant = GuessAnswer(level, question.RightAnswer);
+        var friendVariant = GuessAnswer(availableVariants, question.RightAnswer, level);
         return String.Format(template, userName, friendName, question.Text, friendVariant, question.AnswerOf(friendVariant));
     }
 
@@ -133,10 +137,10 @@ class Narrator
         .1
     };
 
-    char GuessAnswer(byte level, char rightAnswer) =>
+    char GuessAnswer(IList<char> availableVariants, char rightVariant, byte level) =>
         Rnd.NextDouble() <= ProbabilityOfRightHintTable[level]
-            ? rightAnswer
-            : PickRandomItem(new[] { 'A', 'B', 'C', 'D' });
+            ? rightVariant
+            : PickRandomItem(availableVariants);
 }
 
 class Speech

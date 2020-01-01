@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -179,21 +178,16 @@ class Game : IDisposable
         var question = Questions[level][questionIndex];
         var questionText = Narrator.PickRandomAskQuestionSpeech(msg.from.first_name, level, question);
         var text = $"{preamble}\n{questionText}";
-        var state = new States.Playing()
-        {
-            Level = level,
-            Question = questionIndex,
-            UsedHints = usedHints
-        };
+        var newState = new States.Playing(level, questionIndex, usedHints);
 
-        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(usedHints));
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        Games[msg.chat.id] = state;
+        Games[msg.chat.id] = newState;
     }
 
     async Task FiftyFifty(Message msg, States.Playing state, CancellationToken cancellationToken)
     {
-        if (!state.IsFiftyFiftyAvailable)
+        if (state.UsedHints.HasFlag(States.Playing.Hints.FiftyFifty))
         {
             await ReplyTo(msg, "Вы уже использовали подсказку 50/50!", cancellationToken);
             return;
@@ -201,93 +195,69 @@ class Game : IDisposable
 
         var question = Questions[state.Level][state.Question];
         var (text, removed1, removed2) = Narrator.FiftyFifty(question);
-        var usedHints = state.UsedHints | States.Playing.Hints.FiftyFifty;
+        var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.FiftyFifty, removed1, removed2);
 
-        await ReplyTo(msg, text, cancellationToken, Keyboard());
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        state.UsedHints = usedHints;
-        state.Removed1 = removed1;
-        state.Removed2 = removed2;
-
-        ReplyKeyboardMarkup Keyboard()
-        {
-            return new ReplyKeyboardMarkup
-            {
-                keyboard = Buttons(),
-                one_time_keyboard = false,
-            };
-
-            IEnumerable<IEnumerable<KeyboardButton>> Buttons()
-            {
-                yield return AnswerButtonsRow('A', 'B');
-                yield return AnswerButtonsRow('C', 'D');
-                yield return HintButtonsRow(usedHints);
-
-                IEnumerable<KeyboardButton> AnswerButtonsRow(char left, char right)
-                {
-                    if (NotRemoved(left, removed1, removed2, out var leftButton))
-                        yield return leftButton!;
-
-                    if (NotRemoved(right, removed1, removed2, out var rigthButton))
-                        yield return rigthButton!;
-
-                    static bool NotRemoved(char variant, char removed1, char removed2, out KeyboardButton? button)
-                    {
-                        var notRemoved = variant != removed1 && variant != removed2;
-                        button = notRemoved ? new KeyboardButton { text = variant.ToString() } : null;
-                        return notRemoved;
-                    }
-                }
-            }
-        }
+        Games[msg.chat.id] = newState;
     }
 
     async Task CallFirend(Message msg, States.Playing state, CancellationToken cancellationToken)
     {
-        if(!state.IsCallFriendAvailable)
+        if (state.UsedHints.HasFlag(States.Playing.Hints.CallFriend))
         {
             await ReplyTo(msg, "Вы уже звонили другу!", cancellationToken);
             return;
         }
 
         var question = Questions[state.Level][state.Question];
-        var text = Narrator.CallFriend(msg.from.first_name, state.Level, question);
-        var usedHints = state.UsedHints | States.Playing.Hints.CallFriend;
+        var text = Narrator.CallFriend(msg.from.first_name, state.Level, question, state.Removed1, state.Removed2);
+        var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.CallFriend, state.Removed1, state.Removed2);
 
-        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(usedHints));
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        state.UsedHints = usedHints;
+        Games[msg.chat.id] = newState;
     }
 
-    ReplyKeyboardMarkup AnswersKeyboard(States.Playing.Hints usedHints)
+    ReplyKeyboardMarkup AnswersKeyboard(States.Playing state)
     {
-        return new ReplyKeyboardMarkup()
+        return new ReplyKeyboardMarkup
         {
-            keyboard = new KeyboardButton[][]
-            {
-                new []
-                {
-                    new KeyboardButton { text = Answers.A },
-                    new KeyboardButton { text = Answers.B },
-                },
-                new []
-                {
-                    new KeyboardButton { text = Answers.C },
-                    new KeyboardButton { text = Answers.D },
-                },
-                HintButtonsRow(usedHints).ToArray()
-            },
-            one_time_keyboard = false
+            keyboard = Buttons(state),
+            one_time_keyboard = false,
         };
-    }
 
-    IEnumerable<KeyboardButton> HintButtonsRow(States.Playing.Hints usedHints)
-    {
-        if (!usedHints.HasFlag(States.Playing.Hints.FiftyFifty))
-            yield return new KeyboardButton { text = Answers.FiftyFifty };
+        static IEnumerable<IEnumerable<KeyboardButton>> Buttons(States.Playing state)
+        {
+            yield return AnswerButtonsRow('A', 'B');
+            yield return AnswerButtonsRow('C', 'D');
+            yield return HintButtonsRow(state.UsedHints);
 
-        if(!usedHints.HasFlag(States.Playing.Hints.CallFriend))
-            yield return new KeyboardButton { text = Answers.CallFriend };
+            IEnumerable<KeyboardButton> AnswerButtonsRow(char left, char right)
+            {
+                if (NotRemoved(left, state.Removed1, state.Removed2, out var leftButton))
+                    yield return leftButton!;
+
+                if (NotRemoved(right, state.Removed1, state.Removed2, out var rigthButton))
+                    yield return rigthButton!;
+
+                static bool NotRemoved(char variant, char removed1, char removed2, out KeyboardButton? button)
+                {
+                    var notRemoved = variant != removed1 && variant != removed2;
+                    button = notRemoved ? new KeyboardButton { text = variant.ToString() } : null;
+                    return notRemoved;
+                }
+            }
+
+            static IEnumerable<KeyboardButton> HintButtonsRow(States.Playing.Hints usedHints)
+            {
+                if (!usedHints.HasFlag(States.Playing.Hints.FiftyFifty))
+                    yield return new KeyboardButton { text = Answers.FiftyFifty };
+
+                if (!usedHints.HasFlag(States.Playing.Hints.CallFriend))
+                    yield return new KeyboardButton { text = Answers.CallFriend };
+            }
+        }
     }
 
     async Task GameOver(Message msg, string preamble, CancellationToken cancellationToken)
@@ -317,14 +287,18 @@ namespace States
 
     class Playing : State
     {
-        public byte Level;
-        public short Question;
-        public Hints UsedHints;
-        public char Removed1;
-        public char Removed2;
+        public Playing(byte level, short question, Hints usedHints)
+            : this(level, question, usedHints, default, default)
+        { }
 
-        public bool IsFiftyFiftyAvailable => !UsedHints.HasFlag(Hints.FiftyFifty);
-        public bool IsCallFriendAvailable => !UsedHints.HasFlag(Hints.CallFriend);
+        public Playing(byte level, short question, Hints usedHints, char removed1, char removed2) =>
+            (Level, Question, UsedHints, Removed1, Removed2) = (level, question, usedHints, removed1, removed2);
+
+        public readonly byte Level;
+        public readonly short Question;
+        public readonly Hints UsedHints;
+        public readonly char Removed1;
+        public readonly char Removed2;
 
         [Flags] public enum Hints : byte { FiftyFifty = 1, PeopleHelp = 2, CallFriend = 4 }
     }
