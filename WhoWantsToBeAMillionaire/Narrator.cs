@@ -94,6 +94,14 @@ class Narrator
         }
     }
 
+    public string CallFriend(string userName, byte level, Question question)
+    {
+        var template = String.Join('\n', PickRandomItem(Speech.CallFriend));
+        var friendName = PickRandomItem(Speech.FriendsNames);
+        var friendVariant = GuessAnswer(level, question.RightAnswer);
+        return String.Format(template, userName, friendName, question.Text, friendVariant, question.AnswerOf(friendVariant));
+    }
+
     public string PickRandomTryAgainSpeech() =>
         PickRandomItem(Speech.TryAgain);
 
@@ -105,6 +113,30 @@ class Narrator
 
     public short PickRandomIndex<TItem>(IList<TItem> c) =>
         (short)Rnd.Next(0, c.Count);
+
+    static readonly double[] ProbabilityOfRightHintTable = {
+        .7,
+        .7,
+        .65,
+        .6,
+        .55,
+        .5,
+        .45,
+        .4,
+        .35,
+        .3,
+        .3,
+        .25,
+        .25,
+        .15,
+        .15,
+        .1
+    };
+
+    char GuessAnswer(byte level, char rightAnswer) =>
+        Rnd.NextDouble() <= ProbabilityOfRightHintTable[level]
+            ? rightAnswer
+            : PickRandomItem(new[] { 'A', 'B', 'C', 'D' });
 }
 
 class Speech
@@ -157,6 +189,8 @@ class Speech
     /// 4 - friend's variant text
     /// </summary>
     public string[][] CallFriend { get; set; } = default!;
+
+    public string[] FriendsNames { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:

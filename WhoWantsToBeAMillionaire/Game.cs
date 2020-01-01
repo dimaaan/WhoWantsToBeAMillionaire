@@ -103,6 +103,11 @@ class Game : IDisposable
             await FiftyFifty(msg, state, cancellationToken);
             return;
         }
+        else if(text == Answers.CallFriend)
+        {
+            await CallFirend(msg, state, cancellationToken);
+            return;
+        }
 
         char? answer = text?.ToUpperInvariant() switch {
             Answers.A => 'A',
@@ -180,26 +185,8 @@ class Game : IDisposable
             Question = questionIndex,
             UsedHints = usedHints
         };
-        var keyboard = new ReplyKeyboardMarkup()
-        {
-            keyboard = new KeyboardButton[][] 
-            {
-                new [] 
-                {
-                    new KeyboardButton { text = Answers.A },
-                    new KeyboardButton { text = Answers.B },
-                },
-                new [] 
-                {
-                    new KeyboardButton { text = Answers.C },
-                    new KeyboardButton { text = Answers.D },
-                },
-                HintButtonsRow(state.IsFiftyFiftyAvailable).ToArray()
-            },
-            one_time_keyboard = false
-        };
 
-        await ReplyTo(msg, text, cancellationToken, keyboard);
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(usedHints));
 
         Games[msg.chat.id] = state;
     }
@@ -214,9 +201,11 @@ class Game : IDisposable
 
         var question = Questions[state.Level][state.Question];
         var (text, removed1, removed2) = Narrator.FiftyFifty(question);
+        var usedHints = state.UsedHints | States.Playing.Hints.FiftyFifty;
+
         await ReplyTo(msg, text, cancellationToken, Keyboard());
 
-        state.UsedHints |= States.Playing.Hints.FiftyFifty;
+        state.UsedHints = usedHints;
 
         ReplyKeyboardMarkup Keyboard()
         {
@@ -230,7 +219,7 @@ class Game : IDisposable
             {
                 yield return AnswerButtonsRow(Answers.A, Answers.B);
                 yield return AnswerButtonsRow(Answers.C, Answers.D);
-                yield return HintButtonsRow(false);
+                yield return HintButtonsRow(usedHints);
 
                 IEnumerable<KeyboardButton> AnswerButtonsRow(string left, string right)
                 {
@@ -251,10 +240,52 @@ class Game : IDisposable
         }
     }
 
-    IEnumerable<KeyboardButton> HintButtonsRow(bool withFiftyFifty)
+    async Task CallFirend(Message msg, States.Playing state, CancellationToken cancellationToken)
     {
-        if (withFiftyFifty)
+        if(!state.IsCallFriendAvailable)
+        {
+            await ReplyTo(msg, "Вы уже звонили другу!", cancellationToken);
+            return;
+        }
+
+        var question = Questions[state.Level][state.Question];
+        var text = Narrator.CallFriend(msg.from.first_name, state.Level, question);
+        var usedHints = state.UsedHints | States.Playing.Hints.CallFriend;
+
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(usedHints));
+
+        state.UsedHints = usedHints;
+    }
+
+    ReplyKeyboardMarkup AnswersKeyboard(States.Playing.Hints usedHints)
+    {
+        return new ReplyKeyboardMarkup()
+        {
+            keyboard = new KeyboardButton[][]
+            {
+                new []
+                {
+                    new KeyboardButton { text = Answers.A },
+                    new KeyboardButton { text = Answers.B },
+                },
+                new []
+                {
+                    new KeyboardButton { text = Answers.C },
+                    new KeyboardButton { text = Answers.D },
+                },
+                HintButtonsRow(usedHints).ToArray()
+            },
+            one_time_keyboard = false
+        };
+    }
+
+    IEnumerable<KeyboardButton> HintButtonsRow(States.Playing.Hints usedHints)
+    {
+        if (!usedHints.HasFlag(States.Playing.Hints.FiftyFifty))
             yield return new KeyboardButton { text = Answers.FiftyFifty };
+
+        if(!usedHints.HasFlag(States.Playing.Hints.CallFriend))
+            yield return new KeyboardButton { text = Answers.CallFriend };
     }
 
     async Task GameOver(Message msg, string preamble, CancellationToken cancellationToken)
@@ -289,6 +320,7 @@ namespace States
         public Hints UsedHints;
 
         public bool IsFiftyFiftyAvailable => !UsedHints.HasFlag(Hints.FiftyFifty);
+        public bool IsCallFriendAvailable => !UsedHints.HasFlag(Hints.CallFriend);
 
         [Flags] public enum Hints : byte { FiftyFifty = 1, PeopleHelp = 2, CallFriend = 4 }
     }
@@ -306,17 +338,17 @@ class Question
     public string C { get; set; } = default!;
     public string D { get; set; } = default!;
     public char RightAnswer { get; set; }
-    public string RightAnswerText
+
+    public string RightAnswerText => AnswerOf(RightAnswer);
+
+    public string AnswerOf(char variant) => variant switch
     {
-        get => RightAnswer switch
-        {
-            'A' => A,
-            'B' => B,
-            'C' => C,
-            'D' => D,
-            _ => throw new InvalidOperationException($"{nameof(RightAnswer)} has invalid value: {RightAnswer}")
-        };
-    }
+        'A' => A,
+        'B' => B,
+        'C' => C,
+        'D' => D,
+        _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, "Expected values: A, B, C, D")
+    };
 }
 
 static class Answers
@@ -326,4 +358,5 @@ static class Answers
     public const string C = "C";
     public const string D = "D";
     public const string FiftyFifty = "50/50";
+    public const string CallFriend = "звонок другу";
 }
