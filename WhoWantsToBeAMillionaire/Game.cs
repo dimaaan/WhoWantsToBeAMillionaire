@@ -206,6 +206,8 @@ class Game : IDisposable
         await ReplyTo(msg, text, cancellationToken, Keyboard());
 
         state.UsedHints = usedHints;
+        state.Removed1 = removed1;
+        state.Removed2 = removed2;
 
         ReplyKeyboardMarkup Keyboard()
         {
@@ -217,11 +219,11 @@ class Game : IDisposable
 
             IEnumerable<IEnumerable<KeyboardButton>> Buttons()
             {
-                yield return AnswerButtonsRow(Answers.A, Answers.B);
-                yield return AnswerButtonsRow(Answers.C, Answers.D);
+                yield return AnswerButtonsRow('A', 'B');
+                yield return AnswerButtonsRow('C', 'D');
                 yield return HintButtonsRow(usedHints);
 
-                IEnumerable<KeyboardButton> AnswerButtonsRow(string left, string right)
+                IEnumerable<KeyboardButton> AnswerButtonsRow(char left, char right)
                 {
                     if (NotRemoved(left, removed1, removed2, out var leftButton))
                         yield return leftButton!;
@@ -229,7 +231,7 @@ class Game : IDisposable
                     if (NotRemoved(right, removed1, removed2, out var rigthButton))
                         yield return rigthButton!;
 
-                    static bool NotRemoved(string variant, string removed1, string removed2, out KeyboardButton? button)
+                    static bool NotRemoved(char variant, char removed1, char removed2, out KeyboardButton? button)
                     {
                         var notRemoved = variant != removed1 && variant != removed2;
                         button = notRemoved ? new KeyboardButton { text = variant.ToString() } : null;
@@ -318,6 +320,8 @@ namespace States
         public byte Level;
         public short Question;
         public Hints UsedHints;
+        public char Removed1;
+        public char Removed2;
 
         public bool IsFiftyFiftyAvailable => !UsedHints.HasFlag(Hints.FiftyFifty);
         public bool IsCallFriendAvailable => !UsedHints.HasFlag(Hints.CallFriend);
