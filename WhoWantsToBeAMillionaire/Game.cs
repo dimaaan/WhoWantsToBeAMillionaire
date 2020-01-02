@@ -107,6 +107,11 @@ class Game : IDisposable
             await CallFirend(msg, state, cancellationToken);
             return;
         }
+        else if(text == Answers.PeopleHelp)
+        {
+            await PeopleHelp(msg, state, cancellationToken);
+            return;
+        }
 
         char? answer = text?.ToUpperInvariant() switch
         {
@@ -220,6 +225,23 @@ class Game : IDisposable
         Games[msg.chat.id] = newState;
     }
 
+    async Task PeopleHelp(Message msg, States.Playing state, CancellationToken cancellationToken)
+    {
+        if (state.UsedHints.HasFlag(States.Playing.Hints.PeopleHelp))
+        {
+            await ReplyTo(msg, "Вы уже просили зал о помощи!", cancellationToken);
+            return;
+        }
+
+        var question = Questions[state.Level][state.Question];
+        var text = Narrator.PeopleHelp(msg.from.first_name, state.Level, question, state.Removed1, state.Removed2);
+        var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.PeopleHelp, state.Removed1, state.Removed2);
+
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+
+        Games[msg.chat.id] = newState;
+    }
+
     ReplyKeyboardMarkup AnswersKeyboard(States.Playing state)
     {
         return new ReplyKeyboardMarkup
@@ -257,6 +279,9 @@ class Game : IDisposable
 
                 if (!usedHints.HasFlag(States.Playing.Hints.CallFriend))
                     yield return new KeyboardButton { text = Answers.CallFriend };
+
+                if (!usedHints.HasFlag(States.Playing.Hints.PeopleHelp))
+                    yield return new KeyboardButton { text = Answers.PeopleHelp };
             }
         }
     }
@@ -338,4 +363,5 @@ static class Answers
     public const string D = "D";
     public const string FiftyFifty = "50/50";
     public const string CallFriend = "звонок другу";
+    public const string PeopleHelp = "помощь зала";
 }

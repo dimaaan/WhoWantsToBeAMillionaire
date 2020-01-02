@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 class Narrator
 {
@@ -72,12 +73,12 @@ class Narrator
 
     public (string text, char removed1, char removed2) FiftyFifty(Question question)
     {
-        var wrongsVariants = new List<char> { 'A', 'B', 'C', 'D' };
+        var wrongsVariants = new List<char>(4) { 'A', 'B', 'C', 'D' };
         wrongsVariants.Remove(question.RightVariant);
         var removed1 = PickRandomItem(wrongsVariants);
         wrongsVariants.Remove(removed1);
         var removed2 = PickRandomItem(wrongsVariants);
-        var text = new System.Text.StringBuilder(PickRandomItem(Speech.FiftyFifty));
+        var text = new StringBuilder(PickRandomItem(Speech.FiftyFifty));
         text.Append('\n');
         text.Append(question.Text);
         text.Append('\n');
@@ -93,6 +94,41 @@ class Narrator
             if (variant != removed1 && variant != removed2)
                 text.AppendFormat("{0}: {1}\n", variant, answer);
         }
+    }
+
+    public string PeopleHelp(string userName, byte level, Question question, char removed1, char removed2)
+    {
+        var availableVariants = new List<char>(4) { 'A', 'B', 'C', 'D' };
+        availableVariants.Remove(removed1);
+        availableVariants.Remove(removed2);
+
+        Span<(char Var, byte Percent)> tableRows = stackalloc (char, byte)[]
+        {
+            ('A', 0),
+            ('B', 0),
+            ('C', 0),
+            ('D', 0),
+        };
+
+        for (var i = 0; i < 100; i++)
+        {
+            var row = GuessAnswer(availableVariants, question.RightVariant, level) switch
+            {
+                'A' => 0,
+                'B' => 1,
+                'C' => 2,
+                _ => 3,
+            };
+            tableRows[row].Percent++;
+        }
+
+        var speech = String.Format(PickRandomItem(Speech.PeopleHelp), userName, question.Text);
+        var table = new StringBuilder(speech);
+        table.Append('\n');
+        foreach (var (Var, Percent) in tableRows)
+            table.AppendFormat("{0} |{1} {2}%\n", Var, new string('-', Percent / 5), Percent);
+
+        return table.ToString();
     }
 
     public string CallFriend(string userName, byte level, Question question, char removed1, char removed2)
