@@ -298,6 +298,7 @@ class Game : IDisposable
         {
             chat_id = msg.chat.id,
             text = text,
+            disable_notification = true,
             reply_markup = markup
         }, cancellationToken);
 

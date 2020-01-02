@@ -163,6 +163,7 @@ class SendMessageParams
 {
     public long chat_id { get; set; }
     public string text { get; set; } = default!;
+    public bool? disable_notification { get; set; }
     public ReplyKeyboardMarkup? reply_markup { get; set; }
 }
 
