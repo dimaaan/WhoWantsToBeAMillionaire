@@ -117,7 +117,7 @@ class Narrator
         items[PickRandomIndex(items)];
 
     public short PickRandomIndex<T>(ICollection<T> c) =>
-        (short)Rnd.Next(0, c.Count - 1);
+        (short)Rnd.Next(0, c.Count);
 
     static readonly double[] ProbabilityOfRightHintTable = {
         .7,
