@@ -126,7 +126,7 @@ Cуммы, полученные при верном ответе на 5-й и 10
         void AppendIfNotRemoved(char variant, string answer)
         {
             if (variant != removed1 && variant != removed2)
-                text.AppendFormat("{0}: {1}\n", variant, answer);
+                text.AppendFormat("\u2022 {0}: {1}\n", variant, answer);
         }
     }
 
