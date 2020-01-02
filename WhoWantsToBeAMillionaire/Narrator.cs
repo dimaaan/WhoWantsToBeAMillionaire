@@ -49,12 +49,18 @@ class Narrator
             ScoreTable[level]
         );
 
-    public string ReplyToWrongAnswer(Question question) =>
-        String.Format(
-            PickRandomItem(Speech.WrongAnswer),
-            question.RightVariant,
-            question.RightAnswer
-        );
+    public string ReplyToWrongAnswer(byte level, Question question)
+    {
+        var text = PickRandomItem(Speech.WrongAnswer);
+
+        if(level >= 5)
+        {
+            var earned = level >= 10 ? ScoreTable[10] : ScoreTable[5];
+            text = $"{text}\nНо вы заработали {earned} рублей, поздравляю!";
+        }
+
+        return string.Format(text, question.RightVariant, question.RightAnswer);
+    }
 
     public string RightAnswerSpeech(byte level, Question question)
     {

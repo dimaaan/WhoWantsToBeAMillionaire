@@ -144,7 +144,7 @@ class Game : IDisposable
         }
         else
         {
-            await GameOver(msg, Narrator.ReplyToWrongAnswer(question), cancellationToken);
+            await GameOver(msg, Narrator.ReplyToWrongAnswer(state.Level, question), cancellationToken);
         }
     }
 
