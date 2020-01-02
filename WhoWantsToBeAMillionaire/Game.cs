@@ -50,6 +50,12 @@ class Game : IDisposable
     {
         if (update.message != null)
         {
+            if (update.message.text?.Trim().ToLower() == Commands.Help)
+            {
+                await ReplyTo(update.message, Narrator.Help(), cancellationToken);
+                return;
+            }
+
             Games.TryGetValue(update.message.chat.id, out var game);
 
             switch (game)
@@ -73,16 +79,7 @@ class Game : IDisposable
 
     async Task OnStartState(Message msg, CancellationToken cancellationToken)
     {
-        switch (msg.text)
-        {
-            case Commands.Help:
-                await Help(msg, cancellationToken);
-                break;
-            case Commands.Start:
-            default:
-                await StartGame(msg, Narrator.Greetings(msg.from.first_name), cancellationToken);
-                break;
-        }
+        await StartGame(msg, Narrator.Greetings(msg.from.first_name), cancellationToken);
     }
 
     async Task OnPlayingState(Message msg, States.Playing state, CancellationToken cancellationToken)
@@ -92,10 +89,6 @@ class Game : IDisposable
         if (text == Commands.Start)
         {
             await ReplyTo(msg, "Вы уже в игре!", cancellationToken);
-        }
-        else if (text == Commands.Help)
-        {
-            await Help(msg, cancellationToken);
         }
         else if (text == Answers.FiftyFifty)
         {
@@ -159,18 +152,10 @@ class Game : IDisposable
             case "нет":
                 Games.TryRemove(msg.chat.id, out _);
                 break;
-            case Commands.Help:
-                await Help(msg, cancellationToken);
-                break;
             default:
                 await ReplyTo(msg, "Отвечайте \"да\" или \"нет\"", cancellationToken, YesNoKeyboard);
                 break;
         }
-    }
-
-    async Task Help(Message msg, CancellationToken cancellationToken)
-    {
-        await ReplyTo(msg, "/start начать игру\n/help список команд", cancellationToken);
     }
 
     async Task StartGame(Message msg, string greetings, CancellationToken cancellationToken)
