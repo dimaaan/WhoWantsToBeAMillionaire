@@ -283,6 +283,7 @@ class Game : IDisposable
         {
             chat_id = msg.chat.id,
             text = text,
+            parse_mode = "Markdown",
             disable_notification = true,
             reply_markup = markup
         }, cancellationToken);
