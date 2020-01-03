@@ -33,14 +33,9 @@ class StateSerializer
             var type = el.Value.GetProperty("type").GetByte();
             States.State state = type switch
             {
-                1 => new States.Playing(
-                    level: el.Value.GetProperty("level").GetByte(),
-                    question: el.Value.GetProperty("question").GetInt16(),
-                    usedHints: (States.Playing.Hints)el.Value.GetProperty("hints").GetByte(),
-                    removed1: el.Value.TryGetProperty("removed1", out var r1) ? r1.GetString()[0] : default,
-                    removed2: el.Value.TryGetProperty("removed2", out var r2) ? r2.GetString()[0] : default
-                ),
+                1 => LoadPlayingState(el.Value),
                 2 => new States.Over(),
+                3 => LoadWatingsTwoAnswersState(el.Value),
                 _ => throw new Exception($"Unknown type {type}. id: {id}")
             };
             yield return new KeyValuePair<long, States.State>(id, state);
@@ -65,15 +60,14 @@ class StateSerializer
             writer.WriteStartObject();
             switch (game.Value)
             {
+                case States.WaitingTwoAnswers w:
+                    writer.WriteNumber("type", 3);
+                    WritePlayingState(writer, w);
+                    writer.WriteString("firstAnswer", w.FirstAnswer.ToString());
+                    break;
                 case States.Playing p:
                     writer.WriteNumber("type", 1);
-                    writer.WriteNumber("level", p.Level);
-                    writer.WriteNumber("question", p.Question);
-                    writer.WriteNumber("hints", (byte)p.UsedHints);
-                    if (p.Removed1 != default)
-                        writer.WriteNumber("removed1", (byte)p.Removed1);
-                    if (p.Removed2 != default)
-                        writer.WriteNumber("removed2", (byte)p.Removed2);
+                    WritePlayingState(writer, p);
                     break;
                 case States.Over _:
                     writer.WriteNumber("type", 2);
@@ -87,5 +81,34 @@ class StateSerializer
         writer.WriteEndObject();
 
         Logger.LogInformation("{Count} games saved", counter);
+    }
+
+    void WritePlayingState(Utf8JsonWriter writer, States.Playing p)
+    {
+        writer.WriteNumber("level", p.Level);
+        writer.WriteNumber("question", p.Question);
+        writer.WriteNumber("hints", (byte)p.UsedHints);
+        if (p.Removed1 != default)
+            writer.WriteString("removed1", p.Removed1.ToString());
+        if (p.Removed2 != default)
+            writer.WriteString("removed2", p.Removed2.ToString());
+    }
+
+    States.Playing LoadPlayingState(JsonElement el)
+    {
+        return new States.Playing(
+            level: el.GetProperty("level").GetByte(),
+            question: el.GetProperty("question").GetInt16(),
+            usedHints: (States.Playing.Hints)el.GetProperty("hints").GetByte(),
+            removed1: el.TryGetProperty("removed1", out var r1) ? r1.GetString()[0] : default,
+            removed2: el.TryGetProperty("removed2", out var r2) ? r2.GetString()[0] : default
+        );
+    }
+
+    States.WaitingTwoAnswers LoadWatingsTwoAnswersState(JsonElement el)
+    {
+        var p = LoadPlayingState(el);
+        var firstAnswer = el.GetProperty("firstAnswer").GetString()[0];
+        return new States.WaitingTwoAnswers(p, firstAnswer);
     }
 }

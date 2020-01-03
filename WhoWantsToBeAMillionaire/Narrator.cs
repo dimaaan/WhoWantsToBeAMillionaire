@@ -186,6 +186,12 @@ Cуммы, полученные при верном ответе на 5-й и 10
         return String.Format(template, userName, friendName, question.Text, friendVariant, question.AnswerOf(friendVariant));
     }
 
+    public string TwoAnswersStep1() =>
+        PickRandomItem(Speech.TwoAnswersStep1);
+
+    public string TwoAnswersStep2() =>
+        PickRandomItem(Speech.TwoAnswersStep2);
+
     public string NewQuestion() =>
         PickRandomItem(Speech.NewQuestion);
 
@@ -305,6 +311,10 @@ class Speech
     public string[] PeopleHelp { get; set; } = default!;
 
     public string[] FiftyFifty { get; set; } = default!;
+
+    public string[] TwoAnswersStep1 { get; set; } = default!;
+
+    public string[] TwoAnswersStep2 { get; set; } = default!;
 
     public string[] NewQuestion { get; set; } = default!;
 

@@ -63,6 +63,9 @@ class Game : IDisposable
                 case null:
                     await OnStartState(update.message, cancellationToken);
                     break;
+                case States.WaitingTwoAnswers twoAnswers:
+                    await OnWaitingTwoAnswersState(update.message, twoAnswers, cancellationToken);
+                    break;
                 case States.Playing playing:
                     await OnPlayingState(update.message, playing, cancellationToken);
                     break;
@@ -105,29 +108,27 @@ class Game : IDisposable
             await PeopleHelp(msg, state, cancellationToken);
             return;
         }
+        else if (text == Answers.TwoAnswers)
+        {
+            await TwoAnswersBegin(msg, state, cancellationToken);
+            return;
+        }
         else if(text == Answers.NwQuestion)
         {
             await NewQuestion(msg, state, cancellationToken);
             return;
         }
 
-        char? answer = text?.ToUpperInvariant() switch
-        {
-            Answers.A => 'A',
-            Answers.B => 'B',
-            Answers.C => 'C',
-            Answers.D => 'D',
-            _ => null
-        };
-
-        if (answer == null)
-        {
-            await ReplyTo(msg, "Отвечайте буквами A, B, C или D", cancellationToken);
+        var answer = await ParseVariant(msg, cancellationToken);
+        if (answer == default)
             return;
-        }
 
+        await CheckAnswer(msg, state, answer, default, cancellationToken);
+    }
+    async Task CheckAnswer(Message msg, States.Playing state, char answer1, char answer2, CancellationToken cancellationToken)
+    {
         var question = Questions[state.Level][state.Question];
-        if (answer == question.RightVariant)
+        if (answer1 == question.RightVariant || answer2 == question.RightVariant)
         {
             var newLevel = (byte)(state.Level + 1);
 
@@ -144,6 +145,35 @@ class Game : IDisposable
         {
             await GameOver(msg, Narrator.ReplyToWrongAnswer(state.Level, question), cancellationToken);
         }
+    }
+
+    async Task<char> ParseVariant(Message msg, CancellationToken cancellationToken)
+    {
+        var answer = msg.text?.Trim()?.ToUpperInvariant() switch
+        {
+            Answers.A => 'A',
+            Answers.B => 'B',
+            Answers.C => 'C',
+            Answers.D => 'D',
+            _ => default
+        };
+
+        if (answer == default)
+            await ReplyTo(msg, "Отвечайте буквами A, B, C или D", cancellationToken);
+
+        return answer;
+    }
+
+    async Task OnWaitingTwoAnswersState(Message msg, States.WaitingTwoAnswers state, CancellationToken cancellationToken)
+    {
+        var answer = await ParseVariant(msg, cancellationToken);
+        if (answer == default)
+            return;
+
+        if (state.FirstAnswer == default)
+            await TwoAnswersSetFirstAnswer(msg, answer, state, cancellationToken);
+        else
+            await TwoAnswersFinish(msg, answer, state, cancellationToken);
     }
 
     async Task OnOverState(Message msg, CancellationToken cancellationToken)
@@ -232,6 +262,43 @@ class Game : IDisposable
         Games[msg.chat.id] = newState;
     }
 
+    async Task TwoAnswersBegin(Message msg, States.Playing state, CancellationToken cancellationToken)
+    {
+        if (state.UsedHints.HasFlag(States.Playing.Hints.TwoAnswers))
+        {
+            await ReplyTo(msg, "Вы уже брали эту подсказку!", cancellationToken);
+            return;
+        }
+
+        var text = Narrator.TwoAnswersStep1();
+        var newState = new States.WaitingTwoAnswers(state);
+
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+
+        Games[msg.chat.id] = newState;
+    }
+
+    async Task TwoAnswersSetFirstAnswer(Message msg, char firstAnswer, States.WaitingTwoAnswers state, CancellationToken cancellationToken)
+    {
+        var text = Narrator.TwoAnswersStep2();
+        var newState = new States.WaitingTwoAnswers(state, firstAnswer);
+
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+
+        Games[msg.chat.id] = newState;
+    }
+
+    async Task TwoAnswersFinish(Message msg, char secondAnswer, States.WaitingTwoAnswers state, CancellationToken cancellationToken)
+    {
+        if(secondAnswer == state.FirstAnswer)
+        {
+            await ReplyTo(msg, $"Вы уже выбрали {secondAnswer}. Выберите что-нибудь другое.", cancellationToken, AnswersKeyboard(state));
+            return;
+        }
+
+        await CheckAnswer(msg, state, state.FirstAnswer, secondAnswer, cancellationToken);
+    }
+
     async Task NewQuestion(Message msg, States.Playing state, CancellationToken cancellationToken)
     {
         if (state.UsedHints.HasFlag(States.Playing.Hints.NwQuestion))
@@ -267,28 +334,35 @@ class Game : IDisposable
         static IEnumerable<IEnumerable<KeyboardButton>> Buttons(States.Playing state)
         {
             yield return AnswerButtonsRow();
+
+            if (state is States.WaitingTwoAnswers)
+                yield break;
+
             yield return HintButtonsRow1(state.UsedHints);
             yield return HintButtonsRow2(state.UsedHints);
 
             IEnumerable<KeyboardButton> AnswerButtonsRow()
             {
-                if (NotRemoved('A', state, out var a))
+                if (!Removed('A', state, out var a))
                     yield return a!;
 
-                if (NotRemoved('B', state, out var b))
+                if (!Removed('B', state, out var b))
                     yield return b!;
 
-                if (NotRemoved('C', state, out var c))
+                if (!Removed('C', state, out var c))
                     yield return c!;
 
-                if (NotRemoved('D', state, out var d))
+                if (!Removed('D', state, out var d))
                     yield return d!;
 
-                static bool NotRemoved(char variant, States.Playing state, out KeyboardButton? button)
+                static bool Removed(char variant, States.Playing state, out KeyboardButton? button)
                 {
-                    var notRemoved = variant != state.Removed1 && variant != state.Removed2;
-                    button = notRemoved ? new KeyboardButton { text = variant.ToString() } : null;
-                    return notRemoved;
+                    var removed = variant == state.Removed1
+                        || variant == state.Removed2
+                        || (state is States.WaitingTwoAnswers w ? variant == w.FirstAnswer : false);
+
+                    button = !removed ? new KeyboardButton { text = variant.ToString() } : null;
+                    return removed;
                 }
             }
 
@@ -299,12 +373,15 @@ class Game : IDisposable
 
                 if (!usedHints.HasFlag(States.Playing.Hints.CallFriend))
                     yield return new KeyboardButton { text = Answers.CallFriend };
+
+                if (!usedHints.HasFlag(States.Playing.Hints.PeopleHelp))
+                    yield return new KeyboardButton { text = Answers.PeopleHelp };
             }
 
             static IEnumerable<KeyboardButton> HintButtonsRow2(States.Playing.Hints usedHints)
             {
-                if (!usedHints.HasFlag(States.Playing.Hints.PeopleHelp))
-                    yield return new KeyboardButton { text = Answers.PeopleHelp };
+                if (!usedHints.HasFlag(States.Playing.Hints.TwoAnswers))
+                    yield return new KeyboardButton { text = Answers.TwoAnswers };
 
                 if (!usedHints.HasFlag(States.Playing.Hints.NwQuestion))
                     yield return new KeyboardButton { text = Answers.NwQuestion };
@@ -359,8 +436,22 @@ namespace States
             PeopleHelp = 0b_0000_0010,
             CallFriend = 0b_0000_0100,
             CanMistake = 0b_0000_1000,
-            NwQuestion = 0b_0001_0000,
+            TwoAnswers = 0b_0001_0000,
+            NwQuestion = 0b_0010_0000,
         }
+    }
+
+    class WaitingTwoAnswers : Playing
+    {
+        public WaitingTwoAnswers(Playing p)
+            : base(p.Level, p.Question, p.UsedHints | Hints.TwoAnswers, p.Removed1, p.Removed2)
+        { }
+
+        public WaitingTwoAnswers(Playing p, char firstAnswer)
+            : this(p) =>
+            (FirstAnswer) = (firstAnswer);
+
+        public readonly char FirstAnswer;
     }
 
     class Over : State
@@ -398,5 +489,6 @@ static class Answers
     public const string FiftyFifty = "50/50";
     public const string CallFriend = "звонок другу";
     public const string PeopleHelp = "помощь зала";
+    public const string TwoAnswers = "право на ошибку";
     public const string NwQuestion = "замена вопроса";
 }
