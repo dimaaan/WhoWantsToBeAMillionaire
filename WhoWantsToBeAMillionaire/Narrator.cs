@@ -57,10 +57,11 @@ class Narrator
 Cуммы, полученные при верном ответе на 5-й и 10-й вопросы, являлись «несгораемыми».
 Они останутся у игрока даже при неправильном ответе на один из следующих вопросов.
 В случае неверного ответа — игра заканчивается, а выигрыш — последняя «несгораемая» сумма.
-Игроку предлагается 3 единоразовые подсказки:
+Игроку предлагается 4 единоразовые подсказки:
 • «Помощь зала» — зрители в студии голосуют за правильный, на их взгляд, ответ, и игрок видит статистику.
 • «50/50» — ведущий убирает два неправильных варианта ответа.
-• «Звонок другу» — игрок может посоветоваться с вируальным другом.";
+• «Звонок другу» — игрок может посоветоваться с вируальным другом.
+• «Замена вопроса» — заменить вопрос на другой, такой же сложности";
 
     public string Greetings(string userName) =>
         String.Format(PickRandomItem(Speech.StartGame), userName);
@@ -114,16 +115,22 @@ Cуммы, полученные при верном ответе на 5-й и 10
         var removed1 = PickRandomItem(wrongsVariants);
         wrongsVariants.Remove(removed1);
         var removed2 = PickRandomItem(wrongsVariants);
-        var text = new StringBuilder(PickRandomItem(Speech.FiftyFifty));
-        text.Append('\n');
-        text.Append(question.Text);
+
+        var text = $"{PickRandomItem(Speech.FiftyFifty)}\n{FormatQuestion(question, removed1, removed2)}";
+
+        return (text, removed1, removed2);
+    }
+
+    public string FormatQuestion(Question question, char removed1 = default, char removed2 = default)
+    {
+        var text = new StringBuilder(question.Text);
         text.Append('\n');
         AppendIfNotRemoved('A', question.A);
         AppendIfNotRemoved('B', question.B);
         AppendIfNotRemoved('C', question.C);
         AppendIfNotRemoved('D', question.D);
 
-        return (text.ToString(), removed1, removed2);
+        return text.ToString();
 
         void AppendIfNotRemoved(char variant, string answer)
         {
@@ -178,6 +185,9 @@ Cуммы, полученные при верном ответе на 5-й и 10
         var friendVariant = GuessAnswer(availableVariants, question.RightVariant, level);
         return String.Format(template, userName, friendName, question.Text, friendVariant, question.AnswerOf(friendVariant));
     }
+
+    public string NewQuestion() =>
+        PickRandomItem(Speech.NewQuestion);
 
     public string TryAgainSpeech() =>
         PickRandomItem(Speech.TryAgain);
@@ -277,6 +287,8 @@ class Speech
     public string[] PeopleHelp { get; set; } = default!;
 
     public string[] FiftyFifty { get; set; } = default!;
+
+    public string[] NewQuestion { get; set; } = default!;
 
     public string[] TryAgain { get; set; } = default!;
 

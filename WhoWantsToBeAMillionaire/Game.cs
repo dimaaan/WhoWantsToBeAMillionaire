@@ -105,6 +105,11 @@ class Game : IDisposable
             await PeopleHelp(msg, state, cancellationToken);
             return;
         }
+        else if(text == Answers.NwQuestion)
+        {
+            await NewQuestion(msg, state, cancellationToken);
+            return;
+        }
 
         char? answer = text?.ToUpperInvariant() switch
         {
@@ -227,6 +232,30 @@ class Game : IDisposable
         Games[msg.chat.id] = newState;
     }
 
+    async Task NewQuestion(Message msg, States.Playing state, CancellationToken cancellationToken)
+    {
+        if (state.UsedHints.HasFlag(States.Playing.Hints.NwQuestion))
+        {
+            await ReplyTo(msg, "Вы уже меняли вопрос!", cancellationToken);
+            return;
+        }
+
+        short questionIndex;
+        do
+        {
+            questionIndex = Narrator.PickRandomIndex(Questions[state.Level]);
+        } while (questionIndex == state.Question);
+
+        var question = Questions[state.Level][questionIndex];
+        var questionText = Narrator.FormatQuestion(question);
+        var text = $"{Narrator.NewQuestion()}\n{questionText}";
+        var newState = new States.Playing(state.Level, questionIndex, state.UsedHints | States.Playing.Hints.NwQuestion);
+
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+
+        Games[msg.chat.id] = newState;
+    }
+
     ReplyKeyboardMarkup AnswersKeyboard(States.Playing state)
     {
         return new ReplyKeyboardMarkup
@@ -237,17 +266,23 @@ class Game : IDisposable
 
         static IEnumerable<IEnumerable<KeyboardButton>> Buttons(States.Playing state)
         {
-            yield return AnswerButtonsRow('A', 'B');
-            yield return AnswerButtonsRow('C', 'D');
-            yield return HintButtonsRow(state.UsedHints);
+            yield return AnswerButtonsRow();
+            yield return HintButtonsRow1(state.UsedHints);
+            yield return HintButtonsRow2(state.UsedHints);
 
-            IEnumerable<KeyboardButton> AnswerButtonsRow(char left, char right)
+            IEnumerable<KeyboardButton> AnswerButtonsRow()
             {
-                if (NotRemoved(left, state.Removed1, state.Removed2, out var leftButton))
-                    yield return leftButton!;
+                if (NotRemoved('A', state.Removed1, state.Removed2, out var a))
+                    yield return a!;
 
-                if (NotRemoved(right, state.Removed1, state.Removed2, out var rigthButton))
-                    yield return rigthButton!;
+                if (NotRemoved('B', state.Removed1, state.Removed2, out var b))
+                    yield return b!;
+
+                if (NotRemoved('C', state.Removed1, state.Removed2, out var c))
+                    yield return c!;
+
+                if (NotRemoved('D', state.Removed1, state.Removed2, out var d))
+                    yield return d!;
 
                 static bool NotRemoved(char variant, char removed1, char removed2, out KeyboardButton? button)
                 {
@@ -257,16 +292,22 @@ class Game : IDisposable
                 }
             }
 
-            static IEnumerable<KeyboardButton> HintButtonsRow(States.Playing.Hints usedHints)
+            static IEnumerable<KeyboardButton> HintButtonsRow1(States.Playing.Hints usedHints)
             {
                 if (!usedHints.HasFlag(States.Playing.Hints.FiftyFifty))
                     yield return new KeyboardButton { text = Answers.FiftyFifty };
 
                 if (!usedHints.HasFlag(States.Playing.Hints.CallFriend))
                     yield return new KeyboardButton { text = Answers.CallFriend };
+            }
 
+            static IEnumerable<KeyboardButton> HintButtonsRow2(States.Playing.Hints usedHints)
+            {
                 if (!usedHints.HasFlag(States.Playing.Hints.PeopleHelp))
                     yield return new KeyboardButton { text = Answers.PeopleHelp };
+
+                if (!usedHints.HasFlag(States.Playing.Hints.NwQuestion))
+                    yield return new KeyboardButton { text = Answers.NwQuestion };
             }
         }
     }
@@ -313,7 +354,13 @@ namespace States
         public readonly char Removed1;
         public readonly char Removed2;
 
-        [Flags] public enum Hints : byte { FiftyFifty = 1, PeopleHelp = 2, CallFriend = 4 }
+        [Flags] public enum Hints : byte { 
+            FiftyFifty = 0b_0000_0001,
+            PeopleHelp = 0b_0000_0010,
+            CallFriend = 0b_0000_0100,
+            CanMistake = 0b_0000_1000,
+            NwQuestion = 0b_0001_0000,
+        }
     }
 
     class Over : State
@@ -351,4 +398,5 @@ static class Answers
     public const string FiftyFifty = "50/50";
     public const string CallFriend = "звонок другу";
     public const string PeopleHelp = "помощь зала";
+    public const string NwQuestion = "замена вопроса";
 }
