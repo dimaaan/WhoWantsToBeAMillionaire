@@ -272,21 +272,21 @@ class Game : IDisposable
 
             IEnumerable<KeyboardButton> AnswerButtonsRow()
             {
-                if (NotRemoved('A', state.Removed1, state.Removed2, out var a))
+                if (NotRemoved('A', state, out var a))
                     yield return a!;
 
-                if (NotRemoved('B', state.Removed1, state.Removed2, out var b))
+                if (NotRemoved('B', state, out var b))
                     yield return b!;
 
-                if (NotRemoved('C', state.Removed1, state.Removed2, out var c))
+                if (NotRemoved('C', state, out var c))
                     yield return c!;
 
-                if (NotRemoved('D', state.Removed1, state.Removed2, out var d))
+                if (NotRemoved('D', state, out var d))
                     yield return d!;
 
-                static bool NotRemoved(char variant, char removed1, char removed2, out KeyboardButton? button)
+                static bool NotRemoved(char variant, States.Playing state, out KeyboardButton? button)
                 {
-                    var notRemoved = variant != removed1 && variant != removed2;
+                    var notRemoved = variant != state.Removed1 && variant != state.Removed2;
                     button = notRemoved ? new KeyboardButton { text = variant.ToString() } : null;
                     return notRemoved;
                 }
