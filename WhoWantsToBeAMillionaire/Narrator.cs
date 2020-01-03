@@ -155,7 +155,7 @@ Cуммы, полученные при верном ответе на 5-й и 10
 
         for (var i = 0; i < 100; i++)
         {
-            var row = GuessAnswer(availableVariants, question.RightVariant, level) switch
+            var row = GuessAnswer(ProbabilityOfRightAnswerForPeopleHelpHint, availableVariants, question.RightVariant, level) switch
             {
                 'A' => 0,
                 'B' => 1,
@@ -182,7 +182,7 @@ Cуммы, полученные при верном ответе на 5-й и 10
 
         var template = String.Join('\n', PickRandomItem(Speech.CallFriend));
         var friendName = PickRandomItem(Speech.FriendsNames);
-        var friendVariant = GuessAnswer(availableVariants, question.RightVariant, level);
+        var friendVariant = GuessAnswer(ProbabilityOfRightAnswerForCallFriendHint, availableVariants, question.RightVariant, level);
         return String.Format(template, userName, friendName, question.Text, friendVariant, question.AnswerOf(friendVariant));
     }
 
@@ -201,10 +201,35 @@ Cуммы, полученные при верном ответе на 5-й и 10
     public short PickRandomIndex<T>(ICollection<T> c) =>
         (short)Rnd.Next(0, c.Count);
 
-    static readonly double[] ProbabilityOfRightHintTable = {
+    char GuessAnswer(double[] probability, IList<char> availableVariants, char rightVariant, byte level) =>
+        Rnd.NextDouble() <= probability[level]
+            ? rightVariant
+            : PickRandomItem(availableVariants);
+
+    static readonly double[] ProbabilityOfRightAnswerForPeopleHelpHint = {
+        .6,
+        .55,
+        .5,
+        .45,
+        .4,
+        .35,
+        .3,
+        .25,
+        .2,
+        .2,
+        .15,
+        .15,
+        .1,
+        .1,
+        .05,
+    };
+
+    static readonly double[] ProbabilityOfRightAnswerForCallFriendHint = {
+        .9,
+        .85,
+        .85,
         .7,
         .7,
-        .65,
         .6,
         .55,
         .5,
@@ -215,15 +240,8 @@ Cуммы, полученные при верном ответе на 5-й и 10
         .3,
         .25,
         .25,
-        .15,
-        .15,
-        .1
+        .2
     };
-
-    char GuessAnswer(IList<char> availableVariants, char rightVariant, byte level) =>
-        Rnd.NextDouble() <= ProbabilityOfRightHintTable[level]
-            ? rightVariant
-            : PickRandomItem(availableVariants);
 }
 
 class Speech
