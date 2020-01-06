@@ -35,6 +35,12 @@ class Startup
         ));
         services.AddSingleton<Narrator>();
         services.AddSingleton<Game>();
+        services.AddSingleton(provider => new EventLogger(
+            Configuration["Mongo:ConnectionString"],
+            Configuration["Mongo:Database"],
+            Configuration["Mongo:Collection"],
+            provider.GetService<ILogger<EventLogger>>()
+        ));
 
         if (Environment.IsDevelopment())
         {
@@ -88,6 +94,9 @@ class Startup
     void SetWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
         var webHookInfo = tg.GetWebhookInfoAsync(cancellationToken).Result;
+        if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
+            logger.LogInformation("Tegeram last error at {Date}: {Msg}", webHookInfo.last_error_date, webHookInfo.last_error_message);
+
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
             logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
 
