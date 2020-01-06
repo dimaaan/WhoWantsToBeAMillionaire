@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -78,6 +79,10 @@ class Startup
 
                 await gameService.UpdateGame(update, context.RequestAborted);
                 context.Response.StatusCode = 200;
+            });
+
+            endpoints.MapGet("/", async context => {
+                await context.Response.WriteAsync($"Games: {gameService.GamesCount()}");
             });
         });
 

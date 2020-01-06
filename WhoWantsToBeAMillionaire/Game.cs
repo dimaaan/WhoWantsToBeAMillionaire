@@ -54,6 +54,8 @@ class Game : IDisposable
         StateSerializer.Save(Games);
     }
 
+    public int GamesCount() => Games.Count;
+
     public async Task UpdateGame(Update update, CancellationToken cancellationToken)
     {
         if (update.message != null)
