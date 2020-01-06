@@ -70,7 +70,7 @@ dimaaan@gmail.com";
         String.Format(PickRandomItem(Speech.StartGame), userName);
 
     public string AskQuestionSpeech(string userName, byte level, Question question) =>
-        String.Format(PickRandomItem(Speech.AskQuestion),
+        String.Format(PickRandomItem(level == 0 ? Speech.FirstQuestion : Speech.AskQuestion),
             FormatQuestion(question),
             userName,
             level + 1,
@@ -93,10 +93,9 @@ dimaaan@gmail.com";
 
     public string RightAnswerSpeech(byte level, Question question)
     {
-        var template = PickRandomItem(Speech.RightAnswer);
-
-        if (level == 5 || level == 10)
-            template = $"{template}\n{PickRandomItem(Speech.EarnedCantFire)}";
+        var template = level == 5 || level == 10
+            ? PickRandomItem(Speech.EarnedCantFire)
+            : PickRandomItem(Speech.RightAnswer);
 
         return String.Format(
             template,
@@ -259,6 +258,13 @@ class Speech
     /// Placeholders:
     /// 0 - question
     /// 1 - user name
+    /// </summary>
+    public string[] FirstQuestion { get; set; } = default!;
+
+    /// <summary>
+    /// Placeholders:
+    /// 0 - question
+    /// 1 - user name
     /// 2 - question no
     /// 3 - question sum
     /// 4 - earned money
@@ -273,6 +279,15 @@ class Speech
     /// 3 - earned money
     /// </summary>
     public string[] RightAnswer { get; set; } = default!;
+
+    /// <summary>
+    /// Placeholders:
+    /// 0 - variant char,
+    /// 1 - variant text
+    /// 2 - question sum
+    /// 3 - earned money
+    /// </summary>
+    public string[] EarnedCantFire { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
@@ -313,13 +328,4 @@ class Speech
     public string[] NewQuestion { get; set; } = default!;
 
     public string[] TryAgain { get; set; } = default!;
-
-    /// <summary>
-    /// Placeholders:
-    /// 0 - variant char,
-    /// 1 - variant text
-    /// 2 - question sum
-    /// 3 - earned money
-    /// </summary>
-    public string[] EarnedCantFire { get; set; } = default!;
 }
