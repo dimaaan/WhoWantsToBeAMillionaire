@@ -33,7 +33,8 @@ class Narrator
     }
 
     public string Help() =>
-        @"Чтобы заработать миллион рублей, нужно ответить на 15 вопросов.
+        @"*Правила игры*
+Чтобы заработать миллион рублей, нужно ответить на 15 вопросов.
 Каждый вопрос имеет 4 варианта ответа, из которых только один является верным.
 Каждый правильный ответ повышает сумму выигрыша:
 ```
@@ -61,20 +62,17 @@ Cуммы, полученные при верном ответе на 5-й и 10
 • «Помощь зала» — зрители в студии голосуют за правильный, на их взгляд, ответ, и игрок видит статистику.
 • «50/50» — ведущий убирает два неправильных варианта ответа.
 • «Звонок другу» — игрок может посоветоваться с вируальным другом.
-• «Замена вопроса» — заменить вопрос на другой, такой же сложности";
+• «Замена вопроса» — заменить вопрос на другой, такой же сложности
+*Связаться с разработчиком*
+dimaaan@gmail.com";
 
     public string Greetings(string userName) =>
         String.Format(PickRandomItem(Speech.StartGame), userName);
 
     public string AskQuestionSpeech(string userName, byte level, Question question) =>
-        String.Format(
-            PickRandomItem(Speech.AskQuestion),
+        String.Format(PickRandomItem(Speech.AskQuestion),
+            FormatQuestion(question),
             userName,
-            question.Text,
-            question.A,
-            question.B,
-            question.C,
-            question.D,
             level + 1,
             ScoreTable[level + 1],
             ScoreTable[level]
@@ -130,7 +128,7 @@ Cуммы, полученные при верном ответе на 5-й и 10
         AppendIfNotRemoved('C', question.C);
         AppendIfNotRemoved('D', question.D);
 
-        return text.ToString();
+        return text.ToString(0, text.Length - 1);
 
         void AppendIfNotRemoved(char variant, string answer)
         {
@@ -259,15 +257,11 @@ class Speech
 
     /// <summary>
     /// Placeholders:
-    /// 0 - user name
-    /// 1 - question
-    /// 2 - variant A
-    /// 3 - variant B
-    /// 4 - variant C
-    /// 5 - variant D
-    /// 6 - question no
-    /// 7 - question sum
-    /// 8 - earned money
+    /// 0 - question
+    /// 1 - user name
+    /// 2 - question no
+    /// 3 - question sum
+    /// 4 - earned money
     /// </summary>
     public string[] AskQuestion { get; set; } = default!;
 
