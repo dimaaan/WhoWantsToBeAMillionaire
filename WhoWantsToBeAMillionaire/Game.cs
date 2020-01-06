@@ -15,15 +15,21 @@ class Game : IDisposable
     readonly StateSerializer StateSerializer;
     readonly EventLogger EventLogger;
 
+    static class YesNoAnswers
+    {
+        public const string Yes = "да";
+        public const string No = "нет";
+    }
+
     static readonly ReplyKeyboardMarkup YesNoKeyboard = new ReplyKeyboardMarkup()
     {
         keyboard = new KeyboardButton[][] {
             new [] {
-                new KeyboardButton { text = "Да" },
-                new KeyboardButton { text = "Нет" },
+                new KeyboardButton { text = YesNoAnswers.Yes },
+                new KeyboardButton { text = YesNoAnswers.No },
             },
         },
-        one_time_keyboard = true
+        one_time_keyboard = false
     };
 
     static class Commands
@@ -84,6 +90,12 @@ class Game : IDisposable
 
     async Task OnStartState(Message msg, CancellationToken cancellationToken)
     {
+        if(msg.text?.Trim() == YesNoAnswers.No)
+        {
+            await ReplyTo(msg, "Ну нет, так нет.", cancellationToken);
+            return;
+        }
+
         await StartGame(msg, Narrator.Greetings(msg.from.first_name), cancellationToken);
     }
 
