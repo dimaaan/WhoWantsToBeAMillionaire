@@ -140,7 +140,7 @@ class WebhookInfo
     public bool has_custom_certificate { get; set; }
     public int pending_update_count { get; set; }
     public int? last_error_date { get; set; }
-    public string last_error_message { get; set; }
+    public string? last_error_message { get; set; }
     public int? max_connections { get; set; }
     public string[]? allowed_updates { get; set; }
 }
