@@ -5,6 +5,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+/// <summary>
+/// Log game events for analytic purposes
+/// </summary>
 class EventLogger
 {
     readonly IMongoCollection<BsonDocument> Events;
@@ -23,46 +26,52 @@ class EventLogger
         Logger = logger;
     }
 
-    public async Task LogStartGame(Message msg, CancellationToken cancellationToken)
+    public void LogStartGame(Message msg, CancellationToken cancellationToken)
     {
-        await Log(msg, null, null, cancellationToken, new BsonElement("started", true));
+        Log(msg, null, null, cancellationToken, new BsonElement("started", true));
     }
 
-    public async Task LogAnswer(Message msg, byte level, short question, char answer1, char answer2, bool right, CancellationToken cancellationToken)
+    public void LogAnswer(Message msg, byte level, short question, char answer1, char answer2, bool right, CancellationToken cancellationToken)
     {
-        await Log(msg, level, question, cancellationToken,
+        Log(msg, level, question, cancellationToken,
             new BsonElement("answer", answer2 == default ? answer1.ToString() : $"{answer1}{answer2}"),
             new BsonElement("right", right));
     }
 
-    public async Task LogHint(Message msg, byte level, short question, string hint, CancellationToken cancellationToken)
+    public void LogHint(Message msg, byte level, short question, string hint, CancellationToken cancellationToken)
     {
-        await Log(msg, level, question, cancellationToken, new BsonElement("hint", hint));
+        Log(msg, level, question, cancellationToken, new BsonElement("hint", hint));
     }
 
-    async Task Log(Message msg, byte? level, short? question, CancellationToken cancellationToken, params BsonElement[] values)
+    /// <summary>
+    /// Logs event in fire-and-forget style
+    /// </summary>
+    void Log(Message msg, byte? level, short? question, CancellationToken cancellationToken, params BsonElement[] values)
     {
-        try
+        Task.Run(async () =>
         {
-            var doc = new BsonDocument
+            try
             {
-                ["chat"] = msg.chat.id,
-                ["date"] = new BsonDateTime(((long)msg.date) * 1000),
-            };
+                var doc = new BsonDocument
+                {
+                    ["chat"] = msg.chat.id,
+                    ["date"] = new BsonDateTime(((long)msg.date) * 1000),
+                };
 
-            if (level != null)
-                doc.Add("level", level);
+                if (level != null)
+                    doc.Add("level", level);
 
-            if (question != null)
-                doc.Add("question", question);
+                if (question != null)
+                    doc.Add("question", question);
 
-            doc.AddRange(values);
+                doc.AddRange(values);
 
-            await Events.InsertOneAsync(doc, null, cancellationToken);
-        }
-        catch(Exception e)
-        {
-            Logger.LogWarning(e, "Failed to save event to MongoDB");
-        }
+                await Events.InsertOneAsync(doc, null, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e, "Failed to save event to MongoDB");
+            }
+        });
     }
 }

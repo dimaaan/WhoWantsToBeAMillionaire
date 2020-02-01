@@ -145,7 +145,6 @@ class Game : IDisposable
     {
         var question = Questions[state.Level][state.Question];
         var isRightAnswer = answer1 == question.RightVariant || answer2 == question.RightVariant;
-        Task nextTask;
 
         if (isRightAnswer)
         {
@@ -153,21 +152,19 @@ class Game : IDisposable
 
             if (state.Level < 15)
             {
-                nextTask = AskQuestion(msg, Narrator.RightAnswerSpeech(newLevel, question), newLevel, state.UsedHints, cancellationToken);
+                await AskQuestion(msg, Narrator.RightAnswerSpeech(newLevel, question), newLevel, state.UsedHints, cancellationToken);
             }
             else
             {
-                nextTask = GameOver(msg, Narrator.WinSpeech(), cancellationToken);
+                await GameOver(msg, Narrator.WinSpeech(), cancellationToken);
             }
         }
         else
         {
-            nextTask = GameOver(msg, Narrator.ReplyToWrongAnswer(state.Level, question), cancellationToken);
+            await GameOver(msg, Narrator.ReplyToWrongAnswer(state.Level, question), cancellationToken);
         }
 
-        var logTask = EventLogger.LogAnswer(msg, state.Level, state.Question, answer1, answer2, isRightAnswer, cancellationToken);
-
-        await Task.WhenAll(nextTask, logTask);
+        EventLogger.LogAnswer(msg, state.Level, state.Question, answer1, answer2, isRightAnswer, cancellationToken);
     }
 
     async Task<char> ParseVariant(Message msg, CancellationToken cancellationToken)
@@ -218,10 +215,8 @@ class Game : IDisposable
 
     async Task StartGame(Message msg, string greetings, CancellationToken cancellationToken)
     {
-        var askTask = AskQuestion(msg, greetings, 0, default, cancellationToken);
-        var logTask = EventLogger.LogStartGame(msg, cancellationToken);
-
-        await Task.WhenAll(askTask, logTask);
+        await AskQuestion(msg, greetings, 0, default, cancellationToken);
+        EventLogger.LogStartGame(msg, cancellationToken);
     }
 
     async Task AskQuestion(Message msg, string preamble, byte level, States.Playing.Hints usedHints, CancellationToken cancellationToken)
@@ -248,10 +243,9 @@ class Game : IDisposable
         var question = Questions[state.Level][state.Question];
         var (text, removed1, removed2) = Narrator.FiftyFifty(question);
         var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.FiftyFifty, removed1, removed2);
-        var replyTask = ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        var logTask = EventLogger.LogHint(msg, state.Level, state.Question, "50", cancellationToken);
 
-        await Task.WhenAll(replyTask, logTask);
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+        EventLogger.LogHint(msg, state.Level, state.Question, "50", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -267,10 +261,10 @@ class Game : IDisposable
         var question = Questions[state.Level][state.Question];
         var text = Narrator.CallFriend(msg.from.first_name, state.Level, question, state.Removed1, state.Removed2);
         var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.CallFriend, state.Removed1, state.Removed2);
-        var replyTask = ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        var logTask = EventLogger.LogHint(msg, state.Level, state.Question, "cf", cancellationToken);
 
-        await Task.WhenAll(replyTask, logTask);
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+
+        EventLogger.LogHint(msg, state.Level, state.Question, "cf", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -286,10 +280,10 @@ class Game : IDisposable
         var question = Questions[state.Level][state.Question];
         var text = Narrator.PeopleHelp(msg.from.first_name, state.Level, question, state.Removed1, state.Removed2);
         var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.PeopleHelp, state.Removed1, state.Removed2);
-        var replyTask = ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        var logTask = EventLogger.LogHint(msg, state.Level, state.Question, "ph", cancellationToken);
 
-        await Task.WhenAll(replyTask, logTask);
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+
+        EventLogger.LogHint(msg, state.Level, state.Question, "ph", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -305,10 +299,8 @@ class Game : IDisposable
         var text = Narrator.TwoAnswersStep1();
         var newState = new States.WaitingTwoAnswers(state);
 
-        var replyTask = ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        var logTask = EventLogger.LogHint(msg, state.Level, state.Question, "2a", cancellationToken);
-
-        await Task.WhenAll(replyTask, logTask);
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+        EventLogger.LogHint(msg, state.Level, state.Question, "2a", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -352,10 +344,9 @@ class Game : IDisposable
         var questionText = Narrator.FormatQuestion(question);
         var text = $"{Narrator.NewQuestion()}\n{questionText}";
         var newState = new States.Playing(state.Level, questionIndex, state.UsedHints | States.Playing.Hints.NwQuestion);
-        var replyTask = ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        var logTask = EventLogger.LogHint(msg, state.Level, state.Question, "nq", cancellationToken);
 
-        await Task.WhenAll(replyTask, logTask);
+        await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
+        EventLogger.LogHint(msg, state.Level, state.Question, "nq", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
