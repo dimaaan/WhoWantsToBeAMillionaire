@@ -164,7 +164,7 @@ class Game : IDisposable
             await GameOver(msg, Narrator.ReplyToWrongAnswer(state.Level, question), cancellationToken);
         }
 
-        EventLogger.LogAnswer(msg, state.Level, state.Question, answer1, answer2, isRightAnswer, cancellationToken);
+        EventLogger.Answer(msg, state.Level, state.Question, answer1, answer2, isRightAnswer, cancellationToken);
     }
 
     async Task<char> ParseVariant(Message msg, CancellationToken cancellationToken)
@@ -216,7 +216,7 @@ class Game : IDisposable
     async Task StartGame(Message msg, string greetings, CancellationToken cancellationToken)
     {
         await AskQuestion(msg, greetings, 0, default, cancellationToken);
-        EventLogger.LogStartGame(msg, cancellationToken);
+        EventLogger.StartGame(msg, cancellationToken);
     }
 
     async Task AskQuestion(Message msg, string preamble, byte level, States.Playing.Hints usedHints, CancellationToken cancellationToken)
@@ -245,7 +245,7 @@ class Game : IDisposable
         var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.FiftyFifty, removed1, removed2);
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        EventLogger.LogHint(msg, state.Level, state.Question, "50", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "50", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -264,7 +264,7 @@ class Game : IDisposable
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        EventLogger.LogHint(msg, state.Level, state.Question, "cf", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "cf", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -283,7 +283,7 @@ class Game : IDisposable
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        EventLogger.LogHint(msg, state.Level, state.Question, "ph", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "ph", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -300,7 +300,7 @@ class Game : IDisposable
         var newState = new States.WaitingTwoAnswers(state);
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        EventLogger.LogHint(msg, state.Level, state.Question, "2a", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "2a", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }
@@ -346,7 +346,7 @@ class Game : IDisposable
         var newState = new States.Playing(state.Level, questionIndex, state.UsedHints | States.Playing.Hints.NwQuestion);
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        EventLogger.LogHint(msg, state.Level, state.Question, "nq", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "nq", cancellationToken);
 
         Games[msg.chat.id] = newState;
     }

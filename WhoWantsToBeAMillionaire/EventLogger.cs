@@ -26,19 +26,19 @@ class EventLogger
         Logger = logger;
     }
 
-    public void LogStartGame(Message msg, CancellationToken cancellationToken)
+    public void StartGame(Message msg, CancellationToken cancellationToken)
     {
         Log(msg, null, null, cancellationToken, new BsonElement("started", true));
     }
 
-    public void LogAnswer(Message msg, byte level, short question, char answer1, char answer2, bool right, CancellationToken cancellationToken)
+    public void Answer(Message msg, byte level, short question, char answer1, char answer2, bool right, CancellationToken cancellationToken)
     {
         Log(msg, level, question, cancellationToken,
             new BsonElement("answer", answer2 == default ? answer1.ToString() : $"{answer1}{answer2}"),
             new BsonElement("right", right));
     }
 
-    public void LogHint(Message msg, byte level, short question, string hint, CancellationToken cancellationToken)
+    public void Hint(Message msg, byte level, short question, string hint, CancellationToken cancellationToken)
     {
         Log(msg, level, question, cancellationToken, new BsonElement("hint", hint));
     }
