@@ -23,13 +23,12 @@ class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
+        var telegramOptions = Configuration.GetSection("Telegram").Get<TelegramOptions>();
+        services.AddSingleton(telegramOptions);
+
         services.AddSingleton(LoadTexts<Speech>("Millionaire.speech.json"));
         services.AddSingleton(LoadTexts<Question[][]>("Millionaire.questions.json"));
-        services.AddHttpClient<BotApiClient>(c =>
-        {
-            var key = Configuration["Telegram:ApiKey"];
-            c.BaseAddress = new Uri($@"https://api.telegram.org/bot{key}/");
-        });
+        services.AddHttpClient<BotApiClient>(c => c.BaseAddress = new Uri($@"https://api.telegram.org/bot{telegramOptions.ApiKey}/"));
         services.AddSingleton(provider => new StateSerializer(
             Environment.IsDevelopment() ? "./state.json" : "/var/tmp/millionaire/state.json",
             provider.GetService<ILogger<StateSerializer>>()
@@ -52,13 +51,20 @@ class Startup
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime, BotApiClient tg, ILogger<Startup> logger, Game gameService)
+    public void Configure(
+        IApplicationBuilder app,
+        IHostApplicationLifetime lifetime,
+        BotApiClient tg,
+        ILogger<Startup> logger,
+        Game gameService,
+        TelegramOptions telegramOptions
+    )
     {
         app.UseRouting();
 
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapPost(new UriBuilder(Configuration["Telegram:WebhookAddress"]).Path, async context =>
+            endpoints.MapPost(new UriBuilder(telegramOptions.WebhookAddress).Path, async context =>
             {
                 Update update;
 
@@ -84,7 +90,7 @@ class Startup
 
         if (!Environment.IsDevelopment())
         {
-            lifetime.ApplicationStarted.Register(() => SetWebHook(tg, logger, lifetime.ApplicationStopping));
+            lifetime.ApplicationStarted.Register(() => SetWebHook(tg, logger, lifetime.ApplicationStopping, telegramOptions));
             lifetime.ApplicationStopping.Register(() => RemoveWebHook(tg, logger, lifetime.ApplicationStopped));
         }
 
@@ -92,7 +98,7 @@ class Startup
         logger.LogInformation("Working as {User}", user.username);
     }
 
-    void SetWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)
+    void SetWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
     {
         var webHookInfo = tg.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
@@ -101,9 +107,11 @@ class Startup
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
             logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
 
-        var webHookaddress = Configuration["Telegram:WebhookAddress"];
-        tg.SetWebHookAsync(webHookaddress, Configuration["Telegram:Certificate"], cancellationToken).Wait();
-        logger.LogInformation("Webhook set: {Url}", webHookaddress);
+        if (String.IsNullOrWhiteSpace(telegramOptions.Certificate))
+            throw new Exception("Path to telegram certificate is required for non developer environment");
+
+        tg.SetWebHookAsync(telegramOptions.WebhookAddress, telegramOptions.Certificate, cancellationToken).Wait();
+        logger.LogInformation("Webhook set: {Url}", telegramOptions.WebhookAddress);
     }
 
     void RemoveWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)
