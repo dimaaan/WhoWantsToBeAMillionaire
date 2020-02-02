@@ -36,13 +36,8 @@ class Startup
         ));
         services.AddSingleton<Narrator>();
         services.AddSingleton<Game>();
-        services.AddSingleton(provider => new EventLogger(
-            Configuration["Mongo:ConnectionString"],
-            Configuration["Mongo:Database"],
-            Configuration["Mongo:EventCollection"],
-            Configuration["Mongo:UserInfoCollection"],
-            provider.GetService<ILogger<EventLogger>>()
-        ));
+        services.AddSingleton(Configuration.GetSection("Mongo").Get<MongoOptions>());
+        services.AddSingleton<EventLogger>();
 
         if (Environment.IsDevelopment())
         {

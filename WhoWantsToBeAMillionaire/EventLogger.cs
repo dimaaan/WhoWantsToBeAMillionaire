@@ -14,22 +14,17 @@ class EventLogger
     readonly IMongoCollection<User> UserInfo;
     readonly ILogger<EventLogger> Logger;
 
-    public EventLogger(
-        string connectionString, 
-        string databaseName, 
-        string eventCollectionName, 
-        string userInfoCollectionName, 
-        ILogger<EventLogger> logger)
+    public EventLogger(MongoOptions options, ILogger<EventLogger> logger)
     {
-        var settings = MongoClientSettings.FromConnectionString(connectionString);
+        var settings = MongoClientSettings.FromConnectionString(options.ConnectionString);
 
         settings.RetryWrites = false;
 
         var client = new MongoClient(settings);
-        var database = client.GetDatabase(databaseName);
+        var database = client.GetDatabase(options.Database);
 
-        Events = database.GetCollection<BsonDocument>(eventCollectionName);
-        UserInfo = database.GetCollection<User>(userInfoCollectionName);
+        Events = database.GetCollection<BsonDocument>(options.EventCollection);
+        UserInfo = database.GetCollection<User>(options.UserInfoCollection);
         Logger = logger;
     }
 
