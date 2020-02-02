@@ -39,7 +39,8 @@ class Startup
         services.AddSingleton(provider => new EventLogger(
             Configuration["Mongo:ConnectionString"],
             Configuration["Mongo:Database"],
-            Configuration["Mongo:Collection"],
+            Configuration["Mongo:EventCollection"],
+            Configuration["Mongo:UserInfoCollection"],
             provider.GetService<ILogger<EventLogger>>()
         ));
 

@@ -11,9 +11,15 @@ using System.Threading.Tasks;
 class EventLogger
 {
     readonly IMongoCollection<BsonDocument> Events;
+    readonly IMongoCollection<User> UserInfo;
     readonly ILogger<EventLogger> Logger;
 
-    public EventLogger(string connectionString, string databaseName, string collectionName, ILogger<EventLogger> logger)
+    public EventLogger(
+        string connectionString, 
+        string databaseName, 
+        string eventCollectionName, 
+        string userInfoCollectionName, 
+        ILogger<EventLogger> logger)
     {
         var settings = MongoClientSettings.FromConnectionString(connectionString);
 
@@ -22,31 +28,33 @@ class EventLogger
         var client = new MongoClient(settings);
         var database = client.GetDatabase(databaseName);
 
-        Events = database.GetCollection<BsonDocument>(collectionName);
+        Events = database.GetCollection<BsonDocument>(eventCollectionName);
+        UserInfo = database.GetCollection<User>(userInfoCollectionName);
         Logger = logger;
     }
 
     public void StartGame(Message msg, CancellationToken cancellationToken)
     {
-        Log(msg, null, null, cancellationToken, new BsonElement("started", true));
+        LogEvent(msg, null, null, cancellationToken, new BsonElement("started", true));
+        LogUserInfo(msg.from, cancellationToken);
     }
 
     public void Answer(Message msg, byte level, short question, char answer1, char answer2, bool right, CancellationToken cancellationToken)
     {
-        Log(msg, level, question, cancellationToken,
+        LogEvent(msg, level, question, cancellationToken,
             new BsonElement("answer", answer2 == default ? answer1.ToString() : $"{answer1}{answer2}"),
             new BsonElement("right", right));
     }
 
     public void Hint(Message msg, byte level, short question, string hint, CancellationToken cancellationToken)
     {
-        Log(msg, level, question, cancellationToken, new BsonElement("hint", hint));
+        LogEvent(msg, level, question, cancellationToken, new BsonElement("hint", hint));
     }
 
     /// <summary>
     /// Logs event in fire-and-forget style
     /// </summary>
-    void Log(Message msg, byte? level, short? question, CancellationToken cancellationToken, params BsonElement[] values)
+    void LogEvent(Message msg, byte? level, short? question, CancellationToken cancellationToken, params BsonElement[] values)
     {
         Task.Run(async () =>
         {
@@ -71,6 +79,20 @@ class EventLogger
             catch (Exception e)
             {
                 Logger.LogWarning(e, "Failed to save event to MongoDB");
+            }
+        });
+    }
+
+    void LogUserInfo(User user, CancellationToken cancellationToken)
+    {
+        Task.Run(async () => { 
+            try
+            {
+                await UserInfo.InsertOneAsync(user, null, cancellationToken);
+            }
+            catch(Exception e)
+            {
+                Logger.LogWarning(e, "Failed to save user info to MongoDB");
             }
         });
     }
