@@ -78,12 +78,16 @@ class EventLogger
         });
     }
 
+    static readonly ReplaceOptions UserReplaceOptions = new ReplaceOptions {
+        IsUpsert = true
+    };
+
     void LogUserInfo(User user, CancellationToken cancellationToken)
     {
         Task.Run(async () => { 
             try
             {
-                await UserInfo.InsertOneAsync(user, null, cancellationToken);
+                await UserInfo.ReplaceOneAsync(u => u.id == user.id, user, UserReplaceOptions, cancellationToken);
             }
             catch(Exception e)
             {
