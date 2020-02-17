@@ -108,7 +108,7 @@ class BotApiClient
             ? response.description
             : "No description provided";
 
-        throw new TelegramException(errMsg);
+        throw new TelegramException(errMsg, response.error_code);
     }
 }
 
@@ -117,6 +117,7 @@ class BotApiClient
 class TelegramEmptyResponse
 {
     public bool ok { get; set; }
+    public int error_code { get; set; }
     public string? description { get; set; }
 }
 
@@ -127,8 +128,11 @@ class TelegramResponse<T> : TelegramEmptyResponse
 
 class TelegramException : Exception
 {
-    public TelegramException(String description) : base(message: description)
+    public int Code { get; }
+
+    public TelegramException(string description, int code = 0) : base(message: description)
     {
+        Code = code;
     }
 }
 

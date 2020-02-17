@@ -434,8 +434,18 @@ class Game : IDisposable
             reply_markup = markup
         }, cancellationToken);
 
-    async Task Send(SendMessageParams payload, CancellationToken cancellationToken) =>
-        await BotApi.SendMessageAsync(payload, cancellationToken);
+    async Task Send(SendMessageParams payload, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await BotApi.SendMessageAsync(payload, cancellationToken);
+        }
+        catch(TelegramException e) when (e.Code == 400 && e.Message.Contains("no rights to send a message"))
+        {
+            // TODO research this
+            Logger.LogWarning(e, "Skip annoying error");
+        }
+    }
 }
 
 namespace States
