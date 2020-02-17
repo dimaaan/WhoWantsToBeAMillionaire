@@ -95,8 +95,6 @@ class BotApiClient
 
     async Task<T> DeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
     {
-        response.EnsureSuccessStatusCode();
-
         var responseStream = await response.Content.ReadAsStreamAsync();
         return await JsonSerializer.DeserializeAsync<T>(responseStream, null, cancellationToken);
     }
