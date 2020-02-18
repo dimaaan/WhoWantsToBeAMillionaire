@@ -443,7 +443,11 @@ class Game : IDisposable
         catch(TelegramException e) when (e.Code == 400 && e.Message.Contains("no rights to send a message"))
         {
             // TODO research this
-            Logger.LogWarning(e, "Skip annoying error");
+            Logger.LogWarning(e, "Skip annoying error in chat {ChatId}", payload.chat_id);
+        }
+        catch(TelegramException e) when(e.Code == 400 && e.Message.Contains("can't parse entities"))
+        {
+            Logger.LogWarning(e, "Invalid {ParseMode}: {Text}", payload.parse_mode, payload.text);
         }
     }
 }
