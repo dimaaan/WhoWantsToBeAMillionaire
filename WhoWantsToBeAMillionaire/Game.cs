@@ -69,7 +69,7 @@ class Game : IDisposable
         {
             if (update.message.text?.Trim().ToLower() == Commands.Help)
             {
-                await ReplyTo(update.message, Narrator.Help(), cancellationToken);
+                await ReplyTo(update.message, Narrator.Help(), cancellationToken, markdown: true);
                 return;
             }
 
@@ -433,12 +433,12 @@ class Game : IDisposable
         await ReplyTo(msg, text, cancellationToken, YesNoKeyboard);
     }
 
-    async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup? markup = null) =>
+    async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup? markup = null, bool markdown = false) =>
         await Send(new SendMessageParams
         {
             chat_id = msg.chat.id,
             text = text,
-            parse_mode = "Markdown",
+            parse_mode = markdown ? "Markdown" : null,
             disable_notification = true,
             reply_markup = markup
         }, cancellationToken);
