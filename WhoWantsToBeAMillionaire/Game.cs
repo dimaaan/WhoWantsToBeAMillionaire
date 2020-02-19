@@ -440,7 +440,7 @@ class Game : IDisposable
         {
             await BotApi.SendMessageAsync(payload, cancellationToken);
         }
-        catch(TelegramException e) // TODO do we need exceptions in bot api client?
+        catch(BotApiException e)
         {
             Logger.LogWarning(e, "Error replying in chat {ChatId} with text {Text}", payload.chat_id, payload.text);
         }

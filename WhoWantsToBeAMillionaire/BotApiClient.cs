@@ -41,7 +41,7 @@ class BotApiClient
         var result = await PostAsync<bool>("setWebhook", content, cancellationToken);
 
         if (!result)
-            throw new TelegramException("Setting webhook failed");
+            throw new BotApiException("Setting webhook failed");
     }
 
     public async Task DeleteWebhookAsync(CancellationToken cancellationToken)
@@ -108,7 +108,7 @@ class BotApiClient
             ? response.description
             : "No description provided";
 
-        throw new TelegramException(errMsg, response.error_code);
+        throw new BotApiException(errMsg, response.error_code);
     }
 }
 
@@ -126,11 +126,11 @@ class TelegramResponse<T> : TelegramEmptyResponse
     public T result { get; set; } = default!;
 }
 
-class TelegramException : Exception
+class BotApiException : Exception
 {
     public int Code { get; }
 
-    public TelegramException(string description, int code = 0) : base(message: description)
+    public BotApiException(string description, int code = 0) : base(message: description)
     {
         Code = code;
     }
