@@ -440,14 +440,9 @@ class Game : IDisposable
         {
             await BotApi.SendMessageAsync(payload, cancellationToken);
         }
-        catch(TelegramException e) when (e.Code == 400 && e.Message.Contains("no rights to send a message"))
+        catch(TelegramException e) // TODO do we need exceptions in bot api client?
         {
-            // TODO research this
-            Logger.LogWarning(e, "Skip annoying error in chat {ChatId}", payload.chat_id);
-        }
-        catch(TelegramException e) when(e.Code == 400 && e.Message.Contains("can't parse entities"))
-        {
-            Logger.LogWarning(e, "Invalid {ParseMode}: {Text}", payload.parse_mode, payload.text);
+            Logger.LogWarning(e, "Error replying in chat {ChatId} with text {Text}", payload.chat_id, payload.text);
         }
     }
 }
