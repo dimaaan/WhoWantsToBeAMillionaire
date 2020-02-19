@@ -84,7 +84,8 @@ class Startup
             });
 
             endpoints.MapGet("/", async context => {
-                await context.Response.WriteAsync($"Games: {gameService.GamesCount}\r\nLast activity: {gameService.LastUpdatedAt.ToLocalTime()}");
+                var lastActivity = gameService.LastUpdatedAt.ToLocalTime().ToString(System.Globalization.CultureInfo.GetCultureInfo("ru-ru"));
+                await context.Response.WriteAsync($"Games: {gameService.GamesCount}\r\nLast activity: {lastActivity}");
             });
         });
 
