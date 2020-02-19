@@ -54,7 +54,14 @@ class Game : IDisposable
         StateSerializer.Save(Games);
     }
 
-    public int GamesCount() => Games.Count;
+    public int GamesCount => Games.Count;
+
+    long _lastUpdatedAt;
+    public DateTimeOffset LastUpdatedAt
+    {
+        get => DateTimeOffset.FromUnixTimeSeconds(Interlocked.Read(ref _lastUpdatedAt));
+        private set => Interlocked.Exchange(ref _lastUpdatedAt, value.ToUnixTimeSeconds());
+    }
 
     public async Task UpdateGame(Update update, CancellationToken cancellationToken)
     {
@@ -88,6 +95,8 @@ class Game : IDisposable
         {
             Logger.LogWarning("Update message wasn't handled");
         }
+
+        LastUpdatedAt = DateTimeOffset.UtcNow;
     }
 
     async Task OnStartState(Message msg, CancellationToken cancellationToken)

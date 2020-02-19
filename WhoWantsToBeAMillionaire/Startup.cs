@@ -84,7 +84,7 @@ class Startup
             });
 
             endpoints.MapGet("/", async context => {
-                await context.Response.WriteAsync($"Games: {gameService.GamesCount()}");
+                await context.Response.WriteAsync($"Games: {gameService.GamesCount}\r\nLast activity: {gameService.LastUpdatedAt.ToLocalTime()}");
             });
         });
 
