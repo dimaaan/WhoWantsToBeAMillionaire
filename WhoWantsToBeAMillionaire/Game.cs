@@ -432,25 +432,24 @@ class Game : IDisposable
         await ReplyTo(msg, text, cancellationToken, YesNoKeyboard);
     }
 
-    async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup? markup = null, bool markdown = false) =>
-        await Send(new SendMessageParams
+    async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup? markup = null, bool markdown = false)
+    {
+        var payload = new SendMessageParams
         {
             chat_id = msg.chat.id,
             text = text,
             parse_mode = markdown ? "Markdown" : null,
             disable_notification = true,
             reply_markup = markup
-        }, cancellationToken);
+        };
 
-    async Task Send(SendMessageParams payload, CancellationToken cancellationToken)
-    {
         try
         {
             await BotApi.SendMessageAsync(payload, cancellationToken);
         }
         catch(BotApiException e)
         {
-            Logger.LogWarning(e, "Error replying in chat {ChatId} with text {Text}", payload.chat_id, payload.text);
+            Logger.LogWarning(e, "Error replying to {UserText} in chat {ChatId} with text {Text}", msg.text, payload.chat_id, payload.text);
         }
     }
 }
