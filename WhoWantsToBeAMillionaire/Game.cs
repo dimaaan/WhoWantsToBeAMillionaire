@@ -157,10 +157,9 @@ class Game : IDisposable
 
         if (isRightAnswer)
         {
-            var newLevel = (byte)(state.Level + 1);
-
-            if (state.Level < 15)
+            if (state.Level < 14)
             {
+                var newLevel = (byte)(state.Level + 1);
                 await AskQuestion(msg, Narrator.RightAnswerSpeech(newLevel, question), newLevel, state.UsedHints, cancellationToken);
             }
             else

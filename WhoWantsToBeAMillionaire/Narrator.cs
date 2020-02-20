@@ -202,7 +202,7 @@ dimaaan@gmail.com";
         items[PickRandomIndex(items)];
 
     public short PickRandomIndex<T>(ICollection<T> c) =>
-        (short)Rnd.Next(0, c.Count);
+        (short)Rnd.Next(c.Count);
 
     char GuessAnswer(double[] probability, IList<char> availableVariants, char rightVariant, byte level) =>
         Rnd.NextDouble() <= probability[level]
