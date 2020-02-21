@@ -81,14 +81,14 @@ class BotApiClient
     async Task PostAsync(string method, CancellationToken cancellationToken)
     {
         var responseMessage = await Client.PostAsync(method, null, cancellationToken);
-        var result = await DeserializeAsync<TelegramEmptyResponse>(responseMessage, cancellationToken);
+        var result = await DeserializeAsync<BotApiEmptyResponse>(responseMessage, cancellationToken);
 
         EnsureOk(result);
     }
 
     async Task<T> DeserializeResultAsync<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
     {
-        var response = await DeserializeAsync<TelegramResponse<T>>(responseMessage, cancellationToken);
+        var response = await DeserializeAsync<BotApiResponse<T>>(responseMessage, cancellationToken);
         EnsureOk(response);
         return response.result;
     }
@@ -99,7 +99,7 @@ class BotApiClient
         return await JsonSerializer.DeserializeAsync<T>(responseStream, null, cancellationToken);
     }
 
-    void EnsureOk(TelegramEmptyResponse response)
+    void EnsureOk(BotApiEmptyResponse response)
     {
         if (response.ok)
             return;
@@ -114,14 +114,14 @@ class BotApiClient
 
 #pragma warning disable IDE1006 // Naming Styles
 
-class TelegramEmptyResponse
+class BotApiEmptyResponse
 {
     public bool ok { get; set; }
     public int error_code { get; set; }
     public string? description { get; set; }
 }
 
-class TelegramResponse<T> : TelegramEmptyResponse
+class BotApiResponse<T> : BotApiEmptyResponse
 {
     public T result { get; set; } = default!;
 }
