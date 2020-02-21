@@ -114,7 +114,20 @@ class BotApiClient
 
 #pragma warning disable IDE1006 // Naming Styles
 
-class BotApiEmptyResponse
+class BotApiDto
+{
+    static readonly JsonSerializerOptions JsonOpts = new JsonSerializerOptions
+    {
+        IgnoreNullValues = true
+    };
+
+    public override string ToString()
+    {
+        return JsonSerializer.Serialize(this, GetType(), JsonOpts);
+    }
+}
+
+class BotApiEmptyResponse : BotApiDto
 {
     public bool ok { get; set; }
     public int error_code { get; set; }
@@ -136,7 +149,7 @@ class BotApiException : Exception
     }
 }
 
-class WebhookInfo
+class WebhookInfo : BotApiDto
 {
     public string url { get; set; } = default!;
     public bool has_custom_certificate { get; set; }
@@ -147,7 +160,7 @@ class WebhookInfo
     public string[]? allowed_updates { get; set; }
 }
 
-class UpdateParams
+class UpdateParams : BotApiDto
 {
     public int? offset { get; set; }
     public int? limit { get; set; }
@@ -155,13 +168,13 @@ class UpdateParams
     public string[]? allowed_updates { get; set; }
 }
 
-class Update
+class Update : BotApiDto
 {
     public int update_id { get; set; }
     public Message? message { get; set; }
 }
 
-class SendMessageParams
+class SendMessageParams : BotApiDto
 {
     public long chat_id { get; set; }
     public string text { get; set; } = default!;
@@ -170,7 +183,7 @@ class SendMessageParams
     public ReplyKeyboardMarkup? reply_markup { get; set; }
 }
 
-class Message
+class Message : BotApiDto
 {
     public int message_id { get; set; }
     public User from { get; set; } = default!;
@@ -179,7 +192,7 @@ class Message
     public string? text { get; set; }
 }
 
-class User
+class User : BotApiDto
 {
     public int id { get; set; }
     public bool is_bot { get; set; }
@@ -189,19 +202,19 @@ class User
     public string? language_code { get; set; }
 }
 
-class Chat
+class Chat : BotApiDto
 {
     public long id { get; set; }
     public string type { get; set; } = default!;
 }
 
-class ReplyKeyboardMarkup
+class ReplyKeyboardMarkup : BotApiDto
 {
     public IEnumerable<IEnumerable<KeyboardButton>> keyboard { get; set; } = default!;
     public bool? one_time_keyboard { get; set; }
 }
 
-class KeyboardButton
+class KeyboardButton : BotApiDto
 {
     public string text { get; set; } = default!;
 }

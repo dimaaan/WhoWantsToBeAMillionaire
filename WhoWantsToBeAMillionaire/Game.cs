@@ -449,8 +449,7 @@ class Game : IDisposable
         }
         catch(BotApiException e)
         {
-            var msgJson = System.Text.Json.JsonSerializer.Serialize<Message>(msg);
-            Logger.LogWarning(e, "Error replying to {Msg} with text {Text}", msgJson, payload.text);
+            Logger.LogWarning(e, "Error replying to {Msg} with text {Text}", msg, payload.text);
         }
     }
 }
