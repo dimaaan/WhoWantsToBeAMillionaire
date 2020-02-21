@@ -84,7 +84,7 @@ class Startup
             });
 
             endpoints.MapGet("/", async context => {
-                var lastActivity = gameService.LastUpdatedAt.ToLocalTime().ToString(System.Globalization.CultureInfo.GetCultureInfo("ru-ru"));
+                var lastActivity = FormatDate(gameService.LastUpdatedAt);
                 await context.Response.WriteAsync($"Games: {gameService.GamesCount}\r\nLast activity: {lastActivity}");
             });
         });
@@ -103,7 +103,11 @@ class Startup
     {
         var webHookInfo = botApi.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
-            logger.LogInformation("Tegeram last error at {Date}: {Msg}", webHookInfo.last_error_date, webHookInfo.last_error_message);
+        {
+            var date = FormatDate(DateTimeOffset.FromUnixTimeSeconds(webHookInfo.last_error_date ?? 0));
+            logger.LogInformation("Tegeram last error at {Date}: {Msg}", date, webHookInfo.last_error_message);
+        }
+            
 
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
             logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
@@ -119,5 +123,10 @@ class Startup
     {
         botApi.DeleteWebhookAsync(cancellationToken).Wait();
         logger.LogInformation("Webhook removed");
+    }
+
+    static string FormatDate(DateTimeOffset d)
+    {
+        return d.ToLocalTime().ToString(System.Globalization.CultureInfo.GetCultureInfo("ru-ru"));
     }
 }
