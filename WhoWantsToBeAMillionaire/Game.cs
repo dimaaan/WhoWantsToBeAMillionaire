@@ -65,7 +65,7 @@ class Game : IDisposable
 
     public async Task UpdateGame(Update update, CancellationToken cancellationToken)
     {
-        if (update.message != null)
+        if (update.message?.text != null)
         {
             if (update.message.text?.Trim().ToLower() == Commands.Help)
             {
@@ -93,7 +93,7 @@ class Game : IDisposable
         }
         else
         {
-            Logger.LogWarning("Update message wasn't handled");
+            Logger.LogWarning("Update message wasn't handled: {Update}", update);
         }
 
         LastUpdatedAt = DateTimeOffset.UtcNow;
