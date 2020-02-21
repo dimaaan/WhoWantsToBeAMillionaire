@@ -54,7 +54,7 @@ class Startup
     public void Configure(
         IApplicationBuilder app,
         IHostApplicationLifetime lifetime,
-        BotApiClient tg,
+        BotApiClient botApi,
         ILogger<Startup> logger,
         Game gameService,
         TelegramOptions telegramOptions
@@ -91,17 +91,17 @@ class Startup
 
         if (!Environment.IsDevelopment())
         {
-            lifetime.ApplicationStarted.Register(() => SetWebHook(tg, logger, lifetime.ApplicationStopping, telegramOptions));
-            lifetime.ApplicationStopping.Register(() => RemoveWebHook(tg, logger, lifetime.ApplicationStopped));
+            lifetime.ApplicationStarted.Register(() => SetWebHook(botApi, logger, lifetime.ApplicationStopping, telegramOptions));
+            lifetime.ApplicationStopping.Register(() => RemoveWebHook(botApi, logger, lifetime.ApplicationStopped));
         }
 
-        var user = tg.GetMeAsync(lifetime.ApplicationStopping).Result;
+        var user = botApi.GetMeAsync(lifetime.ApplicationStopping).Result;
         logger.LogInformation("Working as {User}", user.username);
     }
 
-    void SetWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
+    void SetWebHook(BotApiClient botApi, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
     {
-        var webHookInfo = tg.GetWebhookInfoAsync(cancellationToken).Result;
+        var webHookInfo = botApi.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
             logger.LogInformation("Tegeram last error at {Date}: {Msg}", webHookInfo.last_error_date, webHookInfo.last_error_message);
 
@@ -111,13 +111,13 @@ class Startup
         if (String.IsNullOrWhiteSpace(telegramOptions.Certificate))
             throw new Exception("Path to telegram certificate is required for non developer environment");
 
-        tg.SetWebHookAsync(telegramOptions.WebhookAddress, telegramOptions.Certificate, cancellationToken).Wait();
+        botApi.SetWebHookAsync(telegramOptions.WebhookAddress, telegramOptions.Certificate, cancellationToken).Wait();
         logger.LogInformation("Webhook set: {Url}", telegramOptions.WebhookAddress);
     }
 
-    void RemoveWebHook(BotApiClient tg, ILogger<Startup> logger, CancellationToken cancellationToken)
+    void RemoveWebHook(BotApiClient botApi, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
-        tg.DeleteWebhookAsync(cancellationToken).Wait();
+        botApi.DeleteWebhookAsync(cancellationToken).Wait();
         logger.LogInformation("Webhook removed");
     }
 }
