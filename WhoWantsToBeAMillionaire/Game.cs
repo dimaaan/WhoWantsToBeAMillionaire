@@ -449,7 +449,8 @@ class Game : IDisposable
         }
         catch(BotApiException e)
         {
-            Logger.LogWarning(e, "Error replying to {UserText} in chat {ChatId} with text {Text}", msg.text, payload.chat_id, payload.text);
+            var msgJson = System.Text.Json.JsonSerializer.Serialize<Message>(msg);
+            Logger.LogWarning(e, "Error replying to {Msg} with text {Text}", msgJson, payload.text);
         }
     }
 }
