@@ -65,35 +65,31 @@ class Game : IDisposable
 
     public async Task UpdateGame(Update update, CancellationToken cancellationToken)
     {
-        if (update.message?.text != null)
+        if (update.message?.text == null)
+            return;
+
+        if (update.message.text?.Trim().ToLower() == Commands.Help)
         {
-            if (update.message.text?.Trim().ToLower() == Commands.Help)
-            {
-                await ReplyTo(update.message, Narrator.Help(), cancellationToken, markdown: true);
-                return;
-            }
-
-            Games.TryGetValue(update.message.chat.id, out var game);
-
-            switch (game)
-            {
-                case null:
-                    await OnStartState(update.message, cancellationToken);
-                    break;
-                case States.WaitingTwoAnswers twoAnswers:
-                    await OnWaitingTwoAnswersState(update.message, twoAnswers, cancellationToken);
-                    break;
-                case States.Playing playing:
-                    await OnPlayingState(update.message, playing, cancellationToken);
-                    break;
-                case States.Over _:
-                    await OnOverState(update.message, cancellationToken);
-                    break;
-            }
+            await ReplyTo(update.message, Narrator.Help(), cancellationToken, markdown: true);
+            return;
         }
-        else
+
+        Games.TryGetValue(update.message.chat.id, out var game);
+
+        switch (game)
         {
-            Logger.LogWarning("Update message wasn't handled: {Update}", update);
+            case null:
+                await OnStartState(update.message, cancellationToken);
+                break;
+            case States.WaitingTwoAnswers twoAnswers:
+                await OnWaitingTwoAnswersState(update.message, twoAnswers, cancellationToken);
+                break;
+            case States.Playing playing:
+                await OnPlayingState(update.message, playing, cancellationToken);
+                break;
+            case States.Over _:
+                await OnOverState(update.message, cancellationToken);
+                break;
         }
 
         LastUpdatedAt = DateTimeOffset.UtcNow;
