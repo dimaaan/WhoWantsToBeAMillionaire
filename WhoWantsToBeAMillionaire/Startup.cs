@@ -64,24 +64,7 @@ class Startup
 
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapPost(new UriBuilder(telegramOptions.WebhookAddress).Path, async context =>
-            {
-                Update update;
-
-                try
-                {
-                    update = await JsonSerializer.DeserializeAsync<Update>(context.Request.Body, null, context.RequestAborted);
-                }
-                catch (JsonException ex)
-                {
-                    logger.LogError(ex, "Failed deserialize request body\nContent type: {ContentType}", context.Request.ContentType);
-                    context.Response.StatusCode = 400;
-                    return;
-                }
-
-                await gameService.UpdateGame(update, context.RequestAborted);
-                context.Response.StatusCode = 200;
-            });
+            endpoints.MapWebHook(new UriBuilder(telegramOptions.WebhookAddress).Path);
 
             endpoints.MapGet("/", async context => {
                 var lastActivity = FormatDate(gameService.LastUpdatedAt);
