@@ -40,7 +40,7 @@ class Startup
 
         if (Environment.IsDevelopment())
         {
-            services.AddHostedService<UpdatesPoller>();
+            services.AddHostedService<BotApiUpdatesPoller>();
         }
 
         static T LoadTexts<T>(string resourceName)
