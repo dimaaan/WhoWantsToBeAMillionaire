@@ -13,11 +13,11 @@ public class BotApiClient
     {
         IgnoreNullValues = true
     };
-    readonly HttpClient Client;
+    readonly HttpClient HttpClient;
 
     public BotApiClient(HttpClient client)
     {
-        Client = client;
+        HttpClient = client;
     }
 
     public async Task<User> GetMeAsync(CancellationToken cancellationToken)
@@ -61,7 +61,7 @@ public class BotApiClient
 
     async Task<T> GetAsync<T>(string method, CancellationToken cancellationToken)
     {
-        var responseMessage = await Client.GetAsync(method, cancellationToken);
+        var responseMessage = await HttpClient.GetAsync(method, cancellationToken);
         return await DeserializeResultAsync<T>(responseMessage, cancellationToken);
     }
 
@@ -74,13 +74,13 @@ public class BotApiClient
 
     async Task<TResult> PostAsync<TResult>(string method, HttpContent content, CancellationToken cancellationToken)
     {
-        var responseMessage = await Client.PostAsync(method, content, cancellationToken);
+        var responseMessage = await HttpClient.PostAsync(method, content, cancellationToken);
         return await DeserializeResultAsync<TResult>(responseMessage, cancellationToken);
     }
 
     async Task PostAsync(string method, CancellationToken cancellationToken)
     {
-        var responseMessage = await Client.PostAsync(method, null, cancellationToken);
+        var responseMessage = await HttpClient.PostAsync(method, null, cancellationToken);
         var result = await DeserializeAsync<BotApiEmptyResponse>(responseMessage, cancellationToken);
 
         EnsureOk(result);
