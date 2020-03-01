@@ -29,7 +29,7 @@ class Startup
 
         services.AddSingleton(LoadTexts<Speech>("Millionaire.speech.json"));
         services.AddSingleton(LoadTexts<Question[][]>("Millionaire.questions.json"));
-        services.AddHttpClient<BotApiClient>(c => c.BaseAddress = new Uri($@"https://api.telegram.org/bot{telegramOptions.ApiKey}/"));
+        services.AddHttpClient<BotApi.Client>(c => c.BaseAddress = new Uri($@"https://api.telegram.org/bot{telegramOptions.ApiKey}/"));
         services.AddSingleton(provider => new StateSerializer(
             Environment.IsDevelopment() ?
                 "./state.json" :
@@ -43,7 +43,7 @@ class Startup
 
         if (Environment.IsDevelopment())
         {
-            services.AddHostedService<BotApiUpdatesPoller>();
+            services.AddHostedService<BotApi.UpdatesPoller>();
         }
 
         static T LoadTexts<T>(string resourceName)
@@ -57,7 +57,7 @@ class Startup
     public void Configure(
         IApplicationBuilder app,
         IHostApplicationLifetime lifetime,
-        BotApiClient botApi,
+        BotApi.Client botApi,
         ILogger<Startup> logger,
         TelegramOptions telegramOptions
     )
@@ -80,7 +80,7 @@ class Startup
         logger.LogInformation("Working as {User}", user.username);
     }
 
-    void SetWebHook(BotApiClient botApi, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
+    void SetWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
     {
         var webHookInfo = botApi.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
@@ -101,7 +101,7 @@ class Startup
         logger.LogInformation("Webhook set: {Url}", telegramOptions.WebhookAddress);
     }
 
-    void RemoveWebHook(BotApiClient botApi, ILogger<Startup> logger, CancellationToken cancellationToken)
+    void RemoveWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
         botApi.DeleteWebhookAsync(cancellationToken).Wait();
         logger.LogInformation("Webhook removed");

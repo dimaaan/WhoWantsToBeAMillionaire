@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 public class Game : IDisposable
 {
-    readonly BotApiClient BotApi;
+    readonly BotApi.Client BotApi;
     readonly Question[][] Questions;
     readonly Narrator Narrator;
     readonly ILogger<Game> Logger;
@@ -38,7 +38,7 @@ public class Game : IDisposable
         public const string Help = "/help";
     }
 
-    public Game(BotApiClient botApi, Question[][] questions, Narrator narrator, ILogger<Game> logger, StateSerializer stateSerializer, EventLogger eventLogger)
+    public Game(BotApi.Client botApi, Question[][] questions, Narrator narrator, ILogger<Game> logger, StateSerializer stateSerializer, EventLogger eventLogger)
     {
         BotApi = botApi;
         Questions = questions;
