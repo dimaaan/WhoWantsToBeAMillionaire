@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-class Game : IDisposable
+public class Game : IDisposable
 {
     readonly BotApiClient BotApi;
     readonly Question[][] Questions;
@@ -452,11 +452,11 @@ class Game : IDisposable
 
 namespace States
 {
-    abstract class State
+    public abstract class State
     {
     }
 
-    class Playing : State
+    public class Playing : State
     {
         public Playing(byte level, short question, Hints usedHints)
             : this(level, question, usedHints, default, default)
@@ -481,7 +481,7 @@ namespace States
         }
     }
 
-    class WaitingTwoAnswers : Playing
+    public class WaitingTwoAnswers : Playing
     {
         public WaitingTwoAnswers(Playing p)
             : base(p.Level, p.Question, p.UsedHints | Hints.TwoAnswers, p.Removed1, p.Removed2)
@@ -499,7 +499,7 @@ namespace States
     }
 }
 
-class Question
+public class Question
 {
     public string Text { get; set; } = default!;
     public string A { get; set; } = default!;

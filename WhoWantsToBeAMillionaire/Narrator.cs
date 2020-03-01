@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-class Narrator
+public class Narrator
 {
     static readonly Random Rnd = new Random();
 
@@ -247,7 +247,7 @@ dimaaan@gmail.com";
     };
 }
 
-class Speech
+public class Speech
 {
     /// <summary>
     /// 0 - user name

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +22,8 @@ class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddRazorPages();
+
         var telegramOptions = Configuration.GetSection("Telegram").Get<TelegramOptions>();
         services.AddSingleton(telegramOptions);
 
@@ -30,7 +31,9 @@ class Startup
         services.AddSingleton(LoadTexts<Question[][]>("Millionaire.questions.json"));
         services.AddHttpClient<BotApiClient>(c => c.BaseAddress = new Uri($@"https://api.telegram.org/bot{telegramOptions.ApiKey}/"));
         services.AddSingleton(provider => new StateSerializer(
-            Environment.IsDevelopment() ? "./state.json" : "/var/tmp/millionaire/state.json",
+            Environment.IsDevelopment() ?
+                "./state.json" :
+                "/var/tmp/millionaire/state.json", // there is no universal way to get tmp folder on UNIX, but this, at least, works for Ubuntu
             provider.GetService<ILogger<StateSerializer>>()
         ));
         services.AddSingleton<Narrator>();
@@ -56,7 +59,6 @@ class Startup
         IHostApplicationLifetime lifetime,
         BotApiClient botApi,
         ILogger<Startup> logger,
-        Game gameService,
         TelegramOptions telegramOptions
     )
     {
@@ -65,11 +67,7 @@ class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapWebHook(new UriBuilder(telegramOptions.WebhookAddress).Path);
-
-            endpoints.MapGet("/", async context => {
-                var lastActivity = FormatDate(gameService.LastUpdatedAt);
-                await context.Response.WriteAsync($"Games: {gameService.GamesCount}\r\nLast activity: {lastActivity}");
-            });
+            endpoints.MapRazorPages();
         });
 
         if (!Environment.IsDevelopment())
@@ -87,10 +85,11 @@ class Startup
         var webHookInfo = botApi.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
         {
-            var date = FormatDate(DateTimeOffset.FromUnixTimeSeconds(webHookInfo.last_error_date ?? 0));
+            var date = DateTimeOffset.FromUnixTimeSeconds(webHookInfo.last_error_date ?? 0)
+                .ToLocalTime()
+                .ToString(System.Globalization.CultureInfo.GetCultureInfo("ru-ru"));
             logger.LogInformation("Tegeram last error at {Date}: {Msg}", date, webHookInfo.last_error_message);
         }
-            
 
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
             logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
@@ -106,10 +105,5 @@ class Startup
     {
         botApi.DeleteWebhookAsync(cancellationToken).Wait();
         logger.LogInformation("Webhook removed");
-    }
-
-    static string FormatDate(DateTimeOffset d)
-    {
-        return d.ToLocalTime().ToString(System.Globalization.CultureInfo.GetCultureInfo("ru-ru"));
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Log game events for analytic purposes
 /// </summary>
-class EventLogger
+public class EventLogger
 {
     readonly IMongoCollection<BsonDocument> Events;
     readonly IMongoCollection<User> UserInfo;

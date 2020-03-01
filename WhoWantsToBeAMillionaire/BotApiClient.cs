@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-class BotApiClient
+public class BotApiClient
 {
     readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
     {
@@ -114,7 +114,7 @@ class BotApiClient
 
 #pragma warning disable IDE1006 // Naming Styles
 
-class BotApiDto
+public class BotApiDto
 {
     static readonly JsonSerializerOptions JsonOpts = new JsonSerializerOptions
     {
@@ -127,19 +127,19 @@ class BotApiDto
     }
 }
 
-class BotApiEmptyResponse : BotApiDto
+public class BotApiEmptyResponse : BotApiDto
 {
     public bool ok { get; set; }
     public int error_code { get; set; }
     public string? description { get; set; }
 }
 
-class BotApiResponse<T> : BotApiEmptyResponse
+public class BotApiResponse<T> : BotApiEmptyResponse
 {
     public T result { get; set; } = default!;
 }
 
-class BotApiException : Exception
+public class BotApiException : Exception
 {
     public int Code { get; }
 
@@ -149,7 +149,7 @@ class BotApiException : Exception
     }
 }
 
-class WebhookInfo : BotApiDto
+public class WebhookInfo : BotApiDto
 {
     public string url { get; set; } = default!;
     public bool has_custom_certificate { get; set; }
@@ -160,7 +160,7 @@ class WebhookInfo : BotApiDto
     public string[]? allowed_updates { get; set; }
 }
 
-class UpdateParams : BotApiDto
+public class UpdateParams : BotApiDto
 {
     public int? offset { get; set; }
     public int? limit { get; set; }
@@ -168,13 +168,13 @@ class UpdateParams : BotApiDto
     public string[]? allowed_updates { get; set; }
 }
 
-class Update : BotApiDto
+public class Update : BotApiDto
 {
     public int update_id { get; set; }
     public Message? message { get; set; }
 }
 
-class SendMessageParams : BotApiDto
+public class SendMessageParams : BotApiDto
 {
     public long chat_id { get; set; }
     public string text { get; set; } = default!;
@@ -183,7 +183,7 @@ class SendMessageParams : BotApiDto
     public ReplyKeyboardMarkup? reply_markup { get; set; }
 }
 
-class Message : BotApiDto
+public class Message : BotApiDto
 {
     public int message_id { get; set; }
     public User from { get; set; } = default!;
@@ -192,7 +192,7 @@ class Message : BotApiDto
     public string? text { get; set; }
 }
 
-class User : BotApiDto
+public class User : BotApiDto
 {
     public int id { get; set; }
     public bool is_bot { get; set; }
@@ -202,19 +202,19 @@ class User : BotApiDto
     public string? language_code { get; set; }
 }
 
-class Chat : BotApiDto
+public class Chat : BotApiDto
 {
     public long id { get; set; }
     public string type { get; set; } = default!;
 }
 
-class ReplyKeyboardMarkup : BotApiDto
+public class ReplyKeyboardMarkup : BotApiDto
 {
     public IEnumerable<IEnumerable<KeyboardButton>> keyboard { get; set; } = default!;
     public bool? one_time_keyboard { get; set; }
 }
 
-class KeyboardButton : BotApiDto
+public class KeyboardButton : BotApiDto
 {
     public string text { get; set; } = default!;
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-class StateSerializer
+public class StateSerializer
 {
     readonly string StateFile;
     readonly ILogger<StateSerializer> Logger;
