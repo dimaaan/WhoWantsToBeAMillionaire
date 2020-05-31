@@ -1,4 +1,7 @@
 ﻿@page
+@using System.Globalization;
+@using Humanizer;
+@using Humanizer.Localisation;
 @inject Game gameService
 <!DOCTYPE html>
 <html>
@@ -6,10 +9,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+  @{
+    var lastUpdatedAt = gameService.LastUpdatedAt.ToLocalTime();
+    var idleTime = DateTimeOffset.Now - lastUpdatedAt;
+    var lastUpdatedFormatted = lastUpdatedAt.ToString(CultureInfo.GetCultureInfo("ru-ru"));
+    var idleTimeFormatted = idleTime.Humanize(
+      precision: 2,
+      culture: CultureInfo.GetCultureInfo("en-US"),
+      minUnit: TimeUnit.Second,
+      maxUnit: TimeUnit.Year
+    );
+  }
   <samp>
     Games: @gameService.GamesCount
     <br />
-    Last activity: @gameService.LastUpdatedAt.ToLocalTime().ToString(System.Globalization.CultureInfo.GetCultureInfo("ru-ru"))
+    Last activity @idleTimeFormatted ago. At @lastUpdatedFormatted.
   </samp>
 </body>
 </html>
