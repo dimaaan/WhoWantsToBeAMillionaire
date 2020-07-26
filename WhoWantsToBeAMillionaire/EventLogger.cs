@@ -78,18 +78,20 @@ public class EventLogger
         });
     }
 
-    static readonly ReplaceOptions UserReplaceOptions = new ReplaceOptions {
+    static readonly ReplaceOptions UserReplaceOptions = new ReplaceOptions
+    {
         IsUpsert = true
     };
 
     void LogUserInfo(User user, CancellationToken cancellationToken)
     {
-        Task.Run(async () => { 
+        Task.Run(async () =>
+        {
             try
             {
                 await UserInfo.ReplaceOneAsync(u => u.id == user.id, user, UserReplaceOptions, cancellationToken);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.LogWarning(e, "Failed to save user info to MongoDB");
             }

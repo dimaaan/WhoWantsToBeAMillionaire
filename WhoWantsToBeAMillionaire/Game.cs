@@ -97,7 +97,7 @@ public class Game : IDisposable
 
     async Task OnStartState(Message msg, CancellationToken cancellationToken)
     {
-        if(msg.text?.Trim() == YesNoAnswers.No)
+        if (msg.text?.Trim() == YesNoAnswers.No)
         {
             await ReplyTo(msg, "Ну нет, так нет.", cancellationToken);
             return;
@@ -124,7 +124,7 @@ public class Game : IDisposable
             await CallFirend(msg, state, cancellationToken);
             return;
         }
-        else if(text == Answers.PeopleHelp)
+        else if (text == Answers.PeopleHelp)
         {
             await PeopleHelp(msg, state, cancellationToken);
             return;
@@ -134,7 +134,7 @@ public class Game : IDisposable
             await TwoAnswersBegin(msg, state, cancellationToken);
             return;
         }
-        else if(text == Answers.NwQuestion)
+        else if (text == Answers.NwQuestion)
         {
             await NewQuestion(msg, state, cancellationToken);
             return;
@@ -321,7 +321,7 @@ public class Game : IDisposable
 
     async Task TwoAnswersFinish(Message msg, char secondAnswer, States.WaitingTwoAnswers state, CancellationToken cancellationToken)
     {
-        if(secondAnswer == state.FirstAnswer)
+        if (secondAnswer == state.FirstAnswer)
         {
             await ReplyTo(msg, $"Вы уже выбрали {secondAnswer}. Выберите что-нибудь другое.", cancellationToken, AnswersKeyboard(state));
             return;
@@ -443,7 +443,7 @@ public class Game : IDisposable
         {
             await BotApi.SendMessageAsync(payload, cancellationToken);
         }
-        catch(BotApiException e)
+        catch (BotApiException e)
         {
             Logger.LogWarning(e, "Error replying to {Msg} with text {Text}", msg, payload.text);
         }
@@ -471,7 +471,9 @@ namespace States
         public readonly char Removed1;
         public readonly char Removed2;
 
-        [Flags] public enum Hints : byte { 
+        [Flags]
+        public enum Hints : byte
+        {
             FiftyFifty = 0b_0000_0001,
             PeopleHelp = 0b_0000_0010,
             CallFriend = 0b_0000_0100,

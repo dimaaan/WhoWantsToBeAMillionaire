@@ -82,7 +82,7 @@ dimaaan@gmail.com";
     {
         var text = PickRandomItem(Speech.WrongAnswer);
 
-        if(level >= 5)
+        if (level >= 5)
         {
             var earned = level >= 10 ? ScoreTable[10] : ScoreTable[5];
             text = $"{text}\nНо вы заработали {earned} рублей, поздравляю!";
