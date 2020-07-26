@@ -39,6 +39,7 @@ class Startup
         services.AddSingleton<Narrator>();
         services.AddSingleton<Game>();
         services.AddSingleton(Configuration.GetSection("Mongo").Get<MongoOptions>());
+        services.AddSingleton<DbContext>();
         services.AddSingleton<EventLogger>();
 
         if (Environment.IsDevelopment())

@@ -10,21 +10,12 @@ using System.Threading.Tasks;
 /// </summary>
 public class EventLogger
 {
-    readonly IMongoCollection<BsonDocument> Events;
-    readonly IMongoCollection<User> UserInfo;
+    readonly DbContext DbContext;
     readonly ILogger<EventLogger> Logger;
 
-    public EventLogger(MongoOptions options, ILogger<EventLogger> logger)
+    public EventLogger(DbContext dbContext, ILogger<EventLogger> logger)
     {
-        var settings = MongoClientSettings.FromConnectionString(options.ConnectionString);
-
-        settings.RetryWrites = false;
-
-        var client = new MongoClient(settings);
-        var database = client.GetDatabase(options.Database);
-
-        Events = database.GetCollection<BsonDocument>(options.EventCollection);
-        UserInfo = database.GetCollection<User>(options.UserInfoCollection);
+        DbContext = dbContext;
         Logger = logger;
     }
 
@@ -69,7 +60,7 @@ public class EventLogger
 
                 doc.AddRange(values);
 
-                await Events.InsertOneAsync(doc, null, cancellationToken);
+                await DbContext.Events.InsertOneAsync(doc, null, cancellationToken);
             }
             catch (Exception e)
             {
@@ -89,7 +80,7 @@ public class EventLogger
         {
             try
             {
-                await UserInfo.ReplaceOneAsync(u => u.id == user.id, user, UserReplaceOptions, cancellationToken);
+                await DbContext.UserInfo.ReplaceOneAsync(u => u.id == user.id, user, UserReplaceOptions, cancellationToken);
             }
             catch (Exception e)
             {
