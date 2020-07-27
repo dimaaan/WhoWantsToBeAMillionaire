@@ -391,7 +391,7 @@ public class Game : IDisposable
                 {
                     var removed = variant == state.Removed1
                         || variant == state.Removed2
-                        || (state is States.WaitingTwoAnswers w ? variant == w.FirstAnswer : false);
+                        || (state is States.WaitingTwoAnswers w && variant == w.FirstAnswer);
 
                     button = !removed ? new KeyboardButton { text = variant.ToString() } : null;
                     return removed;
