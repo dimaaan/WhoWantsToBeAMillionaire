@@ -109,7 +109,7 @@ namespace BotApi
                 ? response.description
                 : "No description provided";
 
-            throw new BotApiException(errMsg, response.error_code);
+            throw new BotApiResponseException(errMsg, response.error_code);
         }
     }
 }
