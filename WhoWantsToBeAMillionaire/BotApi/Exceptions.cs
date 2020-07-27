@@ -2,7 +2,7 @@
 
 namespace BotApi
 {
-    public class BotApiException : Exception
+    class BotApiException : Exception
     {
         public int Code { get; }
 
