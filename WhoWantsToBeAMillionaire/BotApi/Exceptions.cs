@@ -13,7 +13,7 @@ namespace BotApi
 
             return response.error_code switch
             {
-                429 => new BotApiTooManyRequestsException(
+                429 => new TooManyRequestsException(
                     description: errMsg,
                     code: response.error_code,
                     retryAfter: TimeSpan.FromSeconds(int.Parse(TooManyRequestsPattern.Match(response.description).Groups[1].Value))
@@ -46,11 +46,11 @@ namespace BotApi
         }
     }
 
-    class BotApiTooManyRequestsException : BotApiException
+    class TooManyRequestsException : BotApiException
     {
         public TimeSpan RetryAfter { get; }
 
-        public BotApiTooManyRequestsException(string description, int code, TimeSpan retryAfter)
+        public TooManyRequestsException(string description, int code, TimeSpan retryAfter)
             : base(description, code)
         {
             RetryAfter = retryAfter;

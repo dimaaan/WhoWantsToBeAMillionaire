@@ -47,7 +47,7 @@ namespace BotApi
             var result = response.ToException();
 
             // Assert
-            var e = Assert.IsType<BotApiTooManyRequestsException>(result);
+            var e = Assert.IsType<TooManyRequestsException>(result);
             Assert.Equal(e.RetryAfter, TimeSpan.FromSeconds(10));
         }
     }
