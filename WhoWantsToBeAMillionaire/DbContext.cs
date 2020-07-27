@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using BotApi;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 public class DbContext

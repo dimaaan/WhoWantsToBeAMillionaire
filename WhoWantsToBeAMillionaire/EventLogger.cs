@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BotApi;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
