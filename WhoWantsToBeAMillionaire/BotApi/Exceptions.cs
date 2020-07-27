@@ -5,7 +5,7 @@ namespace BotApi
 {
     static class ErrorResponseParser
     {
-        public static BotApiResponseException ToException(this BotApiEmptyResponse response)
+        public static BotApiException ToException(this BotApiEmptyResponse response)
         {
             var errMsg = !String.IsNullOrWhiteSpace(response.description)
                ? response.description
@@ -18,7 +18,7 @@ namespace BotApi
                     code: response.error_code,
                     retryAfter: TimeSpan.FromSeconds(int.Parse(TooManyRequestsPattern.Match(response.description).Groups[1].Value))
                 ),
-                _ => new BotApiResponseException(
+                _ => new BotApiException(
                     description: errMsg, 
                     code: response.error_code
                 ),
@@ -33,32 +33,20 @@ namespace BotApi
     }
 
     /// <summary>
-    /// General Telegram Bot Api related exception. 
-    /// Base class for other Telegram Bot Api exceptions
-    /// </summary>
-    class BotApiException : Exception
-    {
-        public BotApiException(string description)
-            : base(message: description)
-        {
-        }
-    }
-
-    /// <summary>
     /// Telegram Bot Api response error
     /// </summary>
-    class BotApiResponseException : BotApiException
+    class BotApiException: Exception
     {
         public int Code { get; }
 
-        public BotApiResponseException(string description, int code)
+        public BotApiException(string description, int code)
             : base(description)
         {
             Code = code;
         }
     }
 
-    class BotApiTooManyRequestsException : BotApiResponseException
+    class BotApiTooManyRequestsException : BotApiException
     {
         public TimeSpan RetryAfter { get; }
 

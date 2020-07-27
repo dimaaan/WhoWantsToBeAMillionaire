@@ -42,7 +42,7 @@ namespace BotApi
             var result = await PostAsync<bool>("setWebhook", content, cancellationToken);
 
             if (!result)
-                throw new BotApiException("Setting webhook failed");
+                throw new Exception("Setting webhook failed");
         }
 
         public async Task DeleteWebhookAsync(CancellationToken cancellationToken)
