@@ -36,16 +36,6 @@ namespace BotApi
         public T result { get; set; } = default!;
     }
 
-    public class BotApiException : Exception
-    {
-        public int Code { get; }
-
-        public BotApiException(string description, int code = 0) : base(message: description)
-        {
-            Code = code;
-        }
-    }
-
     public class WebhookInfo : BotApiDto
     {
         public string url { get; set; } = default!;
