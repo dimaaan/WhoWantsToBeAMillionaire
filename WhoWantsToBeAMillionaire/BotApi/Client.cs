@@ -105,11 +105,7 @@ namespace BotApi
             if (response.ok)
                 return;
 
-            var errMsg = !String.IsNullOrWhiteSpace(response.description)
-                ? response.description
-                : "No description provided";
-
-            throw new BotApiResponseException(errMsg, response.error_code);
+            throw response.ToException();
         }
     }
 }
