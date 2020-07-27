@@ -31,5 +31,24 @@ namespace BotApi
             // Assert
             Assert.Equal("description", result.Message);
         }
+
+        [Fact]
+        public void ShouldReturnTooManyRequestsError()
+        {
+            // Arrange
+            var response = new BotApiEmptyResponse
+            {
+                ok = false,
+                error_code = 429,
+                description = "Too Many Requests: retry after 10"
+            };
+
+            // Act
+            var result = response.ToException();
+
+            // Assert
+            var e = Assert.IsType<BotApiTooManyRequestsException>(result);
+            Assert.Equal(e.RetryAfter, TimeSpan.FromSeconds(10));
+        }
     }
 }
