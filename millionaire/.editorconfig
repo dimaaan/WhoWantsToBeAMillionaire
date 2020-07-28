@@ -5,5 +5,8 @@ root = true
 [*]
 indent_style = space
 
+# IDE0001: Simplify Names
+dotnet_diagnostic.IDE0001.severity = warning
+
 [*.cshtml]
 indent_size = 2
