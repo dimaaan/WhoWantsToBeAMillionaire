@@ -47,7 +47,8 @@ namespace BotApi
 
         public async Task DeleteWebhookAsync(CancellationToken cancellationToken)
         {
-            await PostAsync("deleteWebhook", cancellationToken);
+            var responseMessage = await HttpClient.PostAsync("deleteWebhook", null, cancellationToken);
+            await DeserializeAsync<BotApiEmptyResponse>(responseMessage, cancellationToken);
         }
 
         public async Task<Update[]> GetUpdatesAsync(UpdateParams payload, CancellationToken cancellationToken)
@@ -63,7 +64,8 @@ namespace BotApi
         async Task<T> GetAsync<T>(string method, CancellationToken cancellationToken)
         {
             var responseMessage = await HttpClient.GetAsync(method, cancellationToken);
-            return await DeserializeResultAsync<T>(responseMessage, cancellationToken);
+            var response = await DeserializeAsync<BotApiResponse<T>>(responseMessage, cancellationToken);
+            return response.result;
         }
 
         async Task<TResult> PostAsync<TPayload, TResult>(string method, TPayload payload, CancellationToken cancellationToken)
@@ -76,34 +78,18 @@ namespace BotApi
         async Task<TResult> PostAsync<TResult>(string method, HttpContent content, CancellationToken cancellationToken)
         {
             var responseMessage = await HttpClient.PostAsync(method, content, cancellationToken);
-            return await DeserializeResultAsync<TResult>(responseMessage, cancellationToken);
-        }
-
-        async Task PostAsync(string method, CancellationToken cancellationToken)
-        {
-            var responseMessage = await HttpClient.PostAsync(method, null, cancellationToken);
-            var result = await DeserializeAsync<BotApiEmptyResponse>(responseMessage, cancellationToken);
-
-            EnsureOk(result);
-        }
-
-        async Task<T> DeserializeResultAsync<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
-        {
-            var response = await DeserializeAsync<BotApiResponse<T>>(responseMessage, cancellationToken);
-            EnsureOk(response);
+            var response = await DeserializeAsync<BotApiResponse<TResult>>(responseMessage, cancellationToken);
             return response.result;
         }
 
-        async Task<T> DeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
+        async Task<T> DeserializeAsync<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
+            where T : BotApiEmptyResponse
         {
-            var responseStream = await response.Content.ReadAsStreamAsync();
-            return await JsonSerializer.DeserializeAsync<T>(responseStream, null, cancellationToken);
-        }
+            var responseStream = await responseMessage.Content.ReadAsStreamAsync();
+            var response = await JsonSerializer.DeserializeAsync<T>(responseStream, null, cancellationToken);
 
-        void EnsureOk(BotApiEmptyResponse response)
-        {
             if (response.ok)
-                return;
+                return response;
 
             throw response.ToException();
         }
