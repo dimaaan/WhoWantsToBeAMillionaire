@@ -27,8 +27,8 @@ class Startup
         var telegramOptions = Configuration.GetSection("Telegram").Get<TelegramOptions>();
         services.AddSingleton(telegramOptions);
 
-        services.AddSingleton(LoadTexts<Speech>("Millionaire.speech.json"));
-        services.AddSingleton(LoadTexts<Question[][]>("Millionaire.questions.json"));
+        services.AddSingleton(LoadTexts<Speech>("millionaire.speech.json"));
+        services.AddSingleton(LoadTexts<Question[][]>("millionaire.questions.json"));
         services.AddHttpClient<BotApi.Client>(c => c.BaseAddress = new Uri($@"https://api.telegram.org/bot{telegramOptions.ApiKey}/"));
         services.AddSingleton(provider => new StateSerializer(
             Environment.IsDevelopment() ?
