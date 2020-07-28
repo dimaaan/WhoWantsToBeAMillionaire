@@ -91,7 +91,22 @@ namespace BotApi
             if (response.ok)
                 return response;
 
-            throw response.ToException();
+            var errMsg = !String.IsNullOrWhiteSpace(response.description)
+               ? response.description
+               : "No description provided";
+
+            throw response.error_code switch
+            {
+                429 => new TooManyRequestsException(
+                    description: errMsg,
+                    code: response.error_code,
+                    retryAfter: responseMessage.Headers.RetryAfter.Delta!.Value
+                ),
+                _ => new BotApiException(
+                  description: errMsg,
+                  code: response.error_code
+              ),
+            };
         }
     }
 }

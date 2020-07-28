@@ -444,6 +444,28 @@ public class Game : IDisposable
         {
             await BotApi.SendMessageAsync(payload, cancellationToken);
         }
+        catch (TooManyRequestsException e)
+        {
+            // This simple retry policy is just enought.
+            // In case Circuit Breaker is needed, use Polly, but be aware:
+            // 1. there is no RetryAfter HTTP header support out-of-the box
+            // 2. working on HttpClient level, there will be no typed Dtos, only HttpContent object
+            Logger.LogInformation("{Exception} caught in chat {ChatId}. Waiting {Wait}s",
+                nameof(TooManyRequestsException), payload.chat_id, e.RetryAfter.TotalSeconds);
+
+            await Task.Delay(e.RetryAfter);
+
+            payload = new SendMessageParams
+            {
+                chat_id = msg.chat.id,
+                text = Narrator.RequestLimitSpeech(text, e.RetryAfter),
+                parse_mode = markdown ? "Markdown" : null,
+                disable_notification = true,
+                reply_markup = markup
+            };
+
+            await BotApi.SendMessageAsync(payload, cancellationToken);
+        }
         catch (BotApiException e)
         {
             Logger.LogWarning(e, "Error replying to {Msg} with text {Text}", msg, payload.text);

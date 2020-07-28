@@ -198,6 +198,9 @@ dimaaan@gmail.com";
     public string WinSpeech() =>
         PickRandomItem(Speech.Win);
 
+    public string RequestLimitSpeech(string text, TimeSpan delay) =>
+        String.Format(PickRandomItem(Speech.RequestLimit), text, delay.TotalSeconds);
+
     TItem PickRandomItem<TItem>(IList<TItem> items) =>
         items[PickRandomIndex(items)];
 
@@ -299,6 +302,8 @@ public class Speech
     public string[] WrongAnswer { get; set; } = default!;
 
     public string[] Win { get; set; } = default!;
+
+    public string[] RequestLimit { get; set; } = default!;
 
     /// <summary>
     /// Placeholders:
