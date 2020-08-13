@@ -76,12 +76,7 @@ namespace Tests
                 Assert.Contains(b, result);
                 Assert.Contains(c, result);
                 Assert.Contains(d, result);
-
-                if (questionNumber > 0)
-                {
-                    Assert.Contains((questionNumber + 1).ToString(), result);
-                }
-
+                Assert.Contains((questionNumber + 1).ToString(), result);
                 Assert.Matches(new Regex(@"question sum: \d+"), result);
                 Assert.Matches(new Regex(@"earned money: \d+"), result);
             }
