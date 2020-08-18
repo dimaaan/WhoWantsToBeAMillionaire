@@ -82,7 +82,7 @@ namespace Tests
             }
 
             [Fact]
-            public void ShouldUserFirstQuestion()
+            public void ShouldUseFirstQuestion()
             {
                 // Act
                 var result = narrator.AskQuestionSpeech("", 0, new Question());
@@ -91,12 +91,12 @@ namespace Tests
                 Assert.StartsWith("First question", result);
             }
 
-            public static IEnumerable<object[]> ShouldUserNotFirstQuestionParams =>
+            public static IEnumerable<object[]> ShouldUseNotFirstQuestionParams =>
                 Utils.Levels.Skip(1).Select(n => new object[] { n });
 
             [Theory]
-            [MemberData(nameof(ShouldUserNotFirstQuestionParams))]
-            public void ShouldUserNotFirstQuestion(byte level)
+            [MemberData(nameof(ShouldUseNotFirstQuestionParams))]
+            public void ShouldUseNotFirstQuestion(byte level)
             {
                 // Act
                 var result = narrator.AskQuestionSpeech("", level, new Question());
