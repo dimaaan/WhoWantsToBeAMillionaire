@@ -14,5 +14,8 @@ dotnet_diagnostic.IDE0055.severity = warning
 # CA1819: Properties should not return arrays
 dotnet_diagnostic.CA1819.severity = none
 
+# CA1034: Nested types should not be visible
+dotnet_diagnostic.CA1034.severity = none
+
 [*.cshtml]
 indent_size = 2
