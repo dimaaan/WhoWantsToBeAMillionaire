@@ -83,7 +83,7 @@ public class StateSerializer
         Logger.LogInformation("{Count} games saved", counter);
     }
 
-    void WritePlayingState(Utf8JsonWriter writer, States.Playing p)
+    static void WritePlayingState(Utf8JsonWriter writer, States.Playing p)
     {
         writer.WriteNumber("level", p.Level);
         writer.WriteNumber("question", p.Question);
@@ -94,7 +94,7 @@ public class StateSerializer
             writer.WriteString("removed2", p.Removed2.ToString());
     }
 
-    States.Playing LoadPlayingState(JsonElement el)
+    static States.Playing LoadPlayingState(JsonElement el)
     {
         return new States.Playing(
             level: el.GetProperty("level").GetByte(),

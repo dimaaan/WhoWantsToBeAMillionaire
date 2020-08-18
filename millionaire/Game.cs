@@ -356,7 +356,7 @@ public class Game : IDisposable
         Games[msg.chat.id] = newState;
     }
 
-    ReplyKeyboardMarkup AnswersKeyboard(States.Playing state)
+    static ReplyKeyboardMarkup AnswersKeyboard(States.Playing state)
     {
         return new ReplyKeyboardMarkup
         {

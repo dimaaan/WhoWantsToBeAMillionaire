@@ -81,7 +81,7 @@ class Startup
         logger.LogInformation("Working as {User}", user.username);
     }
 
-    void SetWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
+    static void SetWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
     {
         var webHookInfo = botApi.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
@@ -102,7 +102,7 @@ class Startup
         logger.LogInformation("Webhook set: {Url}", telegramOptions.WebhookAddress);
     }
 
-    void RemoveWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken)
+    static void RemoveWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
         botApi.DeleteWebhookAsync(cancellationToken).Wait();
         logger.LogInformation("Webhook removed");

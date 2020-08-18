@@ -32,7 +32,7 @@ public class Narrator
         Speech = speech;
     }
 
-    public string Help() =>
+    public static string Help() =>
         @"*Правила игры*
 Чтобы заработать миллион рублей, нужно ответить на 15 вопросов.
 Каждый вопрос имеет 4 варианта ответа, из которых только один является верным.
@@ -118,7 +118,7 @@ dimaaan@gmail.com";
         return (text, removed1, removed2);
     }
 
-    public string FormatQuestion(Question question, char removed1 = default, char removed2 = default)
+    public static string FormatQuestion(Question question, char removed1 = default, char removed2 = default)
     {
         var text = new StringBuilder(question.Text);
         text.Append('\n');
@@ -204,7 +204,7 @@ dimaaan@gmail.com";
     TItem PickRandomItem<TItem>(IList<TItem> items) =>
         items[PickRandomIndex(items)];
 
-    public short PickRandomIndex<T>(ICollection<T> c) =>
+    public static short PickRandomIndex<T>(ICollection<T> c) =>
         (short)Rnd.Next(c.Count);
 
     char GuessAnswer(double[] probability, IList<char> availableVariants, char rightVariant, byte level) =>
