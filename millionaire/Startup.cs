@@ -73,7 +73,7 @@ class Startup
 
         if (!Environment.IsDevelopment())
         {
-            lifetime.ApplicationStarted.Register(() => SetWebHook(botApi, logger, lifetime.ApplicationStopping, telegramOptions));
+            lifetime.ApplicationStarted.Register(() => SetWebHook(botApi, logger, telegramOptions, lifetime.ApplicationStopping));
             lifetime.ApplicationStopping.Register(() => RemoveWebHook(botApi, logger, lifetime.ApplicationStopped));
         }
 
@@ -81,7 +81,7 @@ class Startup
         logger.LogInformation("Working as {User}", user.username);
     }
 
-    static void SetWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken, TelegramOptions telegramOptions)
+    static void SetWebHook(BotApi.Client botApi, ILogger<Startup> logger, TelegramOptions telegramOptions, CancellationToken cancellationToken)
     {
         var webHookInfo = botApi.GetWebhookInfoAsync(cancellationToken).Result;
         if (!String.IsNullOrWhiteSpace(webHookInfo.last_error_message))
