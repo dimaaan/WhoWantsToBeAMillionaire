@@ -294,10 +294,8 @@ public class Speech
 
     /// <summary>
     /// Placeholders:
-    /// 0 - variant char,
-    /// 1 - variant text
-    /// 2 - question sum
-    /// 3 - earned money
+    /// 0 - right variant,
+    /// 1 - right answer
     /// </summary>
     public string[] WrongAnswer { get; set; } = default!;
 

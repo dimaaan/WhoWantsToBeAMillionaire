@@ -105,5 +105,59 @@ namespace Tests
                 Assert.StartsWith("Not first question", result);
             }
         }
+
+        public class ReplyToWrongAnswerTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                WrongAnswer = new[] { "right variant: {0}, right answer: {1}" },
+            });
+
+            public static IEnumerable<object[]> ShouldFillPlaceholdersWhenNoEarningsParams =>
+               Utils.Levels.Take(5).Select(n => new object[] { n });
+
+            [Theory]
+            [MemberData(nameof(ShouldFillPlaceholdersWhenNoEarningsParams))]
+            public void ShouldFillPlaceholdersWhenNoEarnings(byte level)
+            {
+                // Arrange
+                var a = "answer A";
+                var rightVariant = 'A';
+                var question = new Question
+                {
+                    A = a,
+                    RightVariant = rightVariant,
+                };
+
+                // Act
+                var result = narrator.ReplyToWrongAnswer(level, question);
+
+                // Assert
+                Assert.Equal($"right variant: {rightVariant}, right answer: {a}", result);
+            }
+
+            public static IEnumerable<object[]> ShouldFillPlaceholdersWhenHasEarningsParams =>
+               Utils.Levels.Skip(5).Select(n => new object[] { n });
+
+            [Theory]
+            [MemberData(nameof(ShouldFillPlaceholdersWhenHasEarningsParams))]
+            public void ShouldFillPlaceholdersWhenHasEarnings(byte level)
+            {
+                // Arrange
+                var a = "answer A";
+                var rightVariant = 'A';
+                var question = new Question
+                {
+                    A = a,
+                    RightVariant = rightVariant,
+                };
+
+                // Act
+                var result = narrator.ReplyToWrongAnswer(level, question);
+
+                // Assert
+                Assert.Matches(new Regex(@$"right variant: {rightVariant}, right answer: {a}\nНо вы заработали \d+ рублей, поздравляю!"), result);
+            }
+        }
     }
 }
