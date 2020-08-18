@@ -11,5 +11,8 @@ dotnet_diagnostic.IDE0001.severity = warning
 # IDE0055: Fix formatting
 dotnet_diagnostic.IDE0055.severity = warning
 
+# CA1819: Properties should not return arrays
+dotnet_diagnostic.CA1819.severity = none
+
 [*.cshtml]
 indent_size = 2
