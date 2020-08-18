@@ -35,8 +35,8 @@ namespace Tests
 
             readonly Narrator narrator = new Narrator(new Speech
             {
-                FirstQuestion = new[] { AskQuestionTemplate },
-                AskQuestion = new[] { AskQuestionTemplate }
+                FirstQuestion = new[] { $"First question. {AskQuestionTemplate}" },
+                AskQuestion = new[] { $"Not first question. {AskQuestionTemplate}" }
             });
 
             public static IEnumerable<object[]> ShouldBeNonEmptyParams =>
