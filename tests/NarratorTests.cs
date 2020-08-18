@@ -40,13 +40,13 @@ namespace Tests
             });
 
             public static IEnumerable<object[]> ShouldBeNonEmptyParams =>
-                from questionNumber in Utils.QuestionNumbers
+                from level in Utils.Levels
                 from rightVariant in Utils.Variants
-                select new object[] { questionNumber, rightVariant };
+                select new object[] { level, rightVariant };
 
             [Theory]
             [MemberData(nameof(ShouldBeNonEmptyParams))]
-            public void ShouldFillPlaceholders(byte questionNumber, char rightVariant)
+            public void ShouldFillPlaceholders(byte level, char rightVariant)
             {
                 // Arrange
                 var userName = "Bob";
@@ -66,7 +66,7 @@ namespace Tests
                 };
 
                 // Act
-                var result = narrator.AskQuestionSpeech(userName, questionNumber, question);
+                var result = narrator.AskQuestionSpeech(userName, level, question);
 
                 // Assert
                 Assert.NotEmpty(result);
@@ -76,7 +76,7 @@ namespace Tests
                 Assert.Contains(b, result);
                 Assert.Contains(c, result);
                 Assert.Contains(d, result);
-                Assert.Contains((questionNumber + 1).ToString(), result);
+                Assert.Contains((level + 1).ToString(), result);
                 Assert.Matches(new Regex(@"question sum: \d+"), result);
                 Assert.Matches(new Regex(@"earned money: \d+"), result);
             }
