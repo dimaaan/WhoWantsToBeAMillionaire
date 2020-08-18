@@ -31,12 +31,12 @@ namespace Tests
 
         public class AskQuestionTests
         {
-            const string askQuestionTemplate = "question: {0}, userName: {1}, question number: {2}, question sum: {3}, earned money: {4}";
+            const string AskQuestionTemplate = "question: {0}, userName: {1}, question number: {2}, question sum: {3}, earned money: {4}";
 
             readonly Narrator narrator = new Narrator(new Speech
             {
-                FirstQuestion = new[] { askQuestionTemplate },
-                AskQuestion = new[] { askQuestionTemplate }
+                FirstQuestion = new[] { AskQuestionTemplate },
+                AskQuestion = new[] { AskQuestionTemplate }
             });
 
             public static IEnumerable<object[]> ShouldBeNonEmptyParams =>
