@@ -80,6 +80,30 @@ namespace Tests
                 Assert.Matches(new Regex(@"question sum: \d+"), result);
                 Assert.Matches(new Regex(@"earned money: \d+"), result);
             }
+
+            [Fact]
+            public void ShouldUserFirstQuestion()
+            {
+                // Act
+                var result = narrator.AskQuestionSpeech("", 0, new Question());
+
+                // Assert
+                Assert.StartsWith("First question", result);
+            }
+
+            public static IEnumerable<object[]> ShouldUserNotFirstQuestionParams =>
+                Utils.Levels.Skip(1).Select(n => new object[] { n });
+
+            [Theory]
+            [MemberData(nameof(ShouldUserNotFirstQuestionParams))]
+            public void ShouldUserNotFirstQuestion(byte level)
+            {
+                // Act
+                var result = narrator.AskQuestionSpeech("", level, new Question());
+
+                // Assert
+                Assert.StartsWith("Not first question", result);
+            }
         }
     }
 }
