@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Tests
 {
-    public class NarratorTests
+    public static class NarratorTests
     {
         public class GreetingsTests
         {
