@@ -1,4 +1,5 @@
 ﻿using BotApi;
+using Events;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
