@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class Game : IDisposable
+public sealed class Game : IDisposable
 {
     readonly Client BotApi;
     readonly Question[][] Questions;
