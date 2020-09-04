@@ -70,7 +70,7 @@ namespace Events
                     command.Parameters.AddWithValue("$hint", hint ?? (object)DBNull.Value);
                     command.ExecuteNonQuery();
                 }
-                catch (SqliteException e)
+                catch (Exception e)
                 {
                     Logger.LogWarning(e, "Failed to save event to Sqlite");
                 }
@@ -96,7 +96,7 @@ namespace Events
                     command.Parameters.AddWithValue("$language_code", user.language_code ?? (object)DBNull.Value);
                     command.ExecuteNonQuery();
                 }
-                catch (SqliteException e)
+                catch (Exception e)
                 {
                     Logger.LogWarning(e, "Failed to save user to Sqlite");
                 }
