@@ -170,7 +170,7 @@ public sealed class Game : IDisposable
             await GameOver(msg, Narrator.ReplyToWrongAnswer(state.Level, question), cancellationToken);
         }
 
-        EventLogger.Answer(msg, state.Level, state.Question, answer1, answer2, isRightAnswer, cancellationToken);
+        EventLogger.Answer(msg, state.Level, state.Question, answer1, answer2, isRightAnswer);
     }
 
     async Task<char> ParseVariant(Message msg, CancellationToken cancellationToken)
@@ -222,7 +222,7 @@ public sealed class Game : IDisposable
     async Task StartGame(Message msg, string greetings, CancellationToken cancellationToken)
     {
         await AskQuestion(msg, greetings, 0, default, cancellationToken);
-        EventLogger.StartGame(msg, cancellationToken);
+        EventLogger.StartGame(msg);
     }
 
     async Task AskQuestion(Message msg, string preamble, byte level, States.Playing.Hints usedHints, CancellationToken cancellationToken)
