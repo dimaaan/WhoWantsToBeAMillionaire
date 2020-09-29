@@ -58,7 +58,7 @@ namespace Events
                     using var connection = new SqliteConnection(Options.ConnectionString);
                     connection.Open();
 
-                    var command = connection.CreateCommand();
+                    using var command = connection.CreateCommand();
                     command.CommandText = @"INSERT INTO Events (chat, date, level, question, started, answer, right, hint) VALUES ($chat, $date, $level, $question, $started, $answer, $right, $hint)";
                     command.Parameters.AddWithValue("$chat", msg.chat.id);
                     command.Parameters.AddWithValue("$date", DateTimeOffset.FromUnixTimeSeconds(msg.date).ToLocalTime());
@@ -86,7 +86,7 @@ namespace Events
                     using var connection = new SqliteConnection(Options.ConnectionString);
                     connection.Open();
 
-                    var command = connection.CreateCommand();
+                    using var command = connection.CreateCommand();
                     command.CommandText = @"REPLACE INTO Users (id, is_bot, first_name, last_name, username, language_code) VALUES ($id, $is_bot, $first_name, $last_name, $username, $language_code)";
                     command.Parameters.AddWithValue("$id", user.id);
                     command.Parameters.AddWithValue("$is_bot", user.is_bot);
