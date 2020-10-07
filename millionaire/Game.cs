@@ -70,6 +70,12 @@ public sealed class Game : IDisposable
         if (update.message?.text == null)
             return;
 
+        if (update.message.from.is_bot)
+        {
+            Logger.LogInformation("Ignoring bot message: {Msg}", update.message);
+            return;
+        }
+
         if (update.message.text?.Trim().ToLower() == Commands.Help)
         {
             await ReplyTo(update.message, Narrator.Help(), cancellationToken, markdown: true);
