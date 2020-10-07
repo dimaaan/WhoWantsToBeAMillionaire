@@ -92,6 +92,9 @@ public sealed class Game : IDisposable
             case States.Over _:
                 await OnOverState(update.message, cancellationToken);
                 break;
+            default:
+                Logger.LogWarning("Unknown game state: {Game}", game);
+                break;
         }
 
         LastUpdatedAt = DateTimeOffset.UtcNow;
