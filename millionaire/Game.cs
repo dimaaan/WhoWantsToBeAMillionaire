@@ -72,7 +72,7 @@ public sealed class Game : IDisposable
 
         if (update.message.from.is_bot)
         {
-            Logger.LogInformation("Ignoring bot message: {Msg}", update.message);
+            Logger.LogDebug("Ignoring bot message: {Msg}", update.message);
             return;
         }
 
