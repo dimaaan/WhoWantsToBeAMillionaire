@@ -100,15 +100,15 @@ public class StateSerializer
             level: el.GetProperty("level").GetByte(),
             question: el.GetProperty("question").GetInt16(),
             usedHints: (States.Playing.Hints)el.GetProperty("hints").GetByte(),
-            removed1: el.TryGetProperty("removed1", out var r1) ? r1.GetString()[0] : default,
-            removed2: el.TryGetProperty("removed2", out var r2) ? r2.GetString()[0] : default
+            removed1: el.TryGetProperty("removed1", out var r1) ? r1.GetString()![0] : default,
+            removed2: el.TryGetProperty("removed2", out var r2) ? r2.GetString()![0] : default
         );
     }
 
-    States.WaitingTwoAnswers LoadWatingsTwoAnswersState(JsonElement el)
+    static States.WaitingTwoAnswers LoadWatingsTwoAnswersState(JsonElement el)
     {
         var p = LoadPlayingState(el);
-        var firstAnswer = el.GetProperty("firstAnswer").GetString()[0];
+        var firstAnswer = el.GetProperty("firstAnswer").GetString()![0];
         return new States.WaitingTwoAnswers(p, firstAnswer);
     }
 }

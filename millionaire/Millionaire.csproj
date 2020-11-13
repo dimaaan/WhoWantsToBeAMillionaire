@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>millionaire</AssemblyName>
     <UserSecretsId>75c6d409-9627-496d-979d-19f66b05f557</UserSecretsId>
     <Nullable>enable</Nullable>

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http.Json;
 
 namespace BotApi
 {
@@ -47,7 +48,7 @@ namespace BotApi
 
         public async Task DeleteWebhookAsync(CancellationToken cancellationToken)
         {
-            var responseMessage = await HttpClient.PostAsync("deleteWebhook", null, cancellationToken);
+            var responseMessage = await HttpClient.GetAsync("deleteWebhook", cancellationToken);
             await DeserializeAsync<BotApiEmptyResponse>(responseMessage, cancellationToken);
         }
 
@@ -82,11 +83,11 @@ namespace BotApi
             return response.result;
         }
 
-        async Task<T> DeserializeAsync<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
+        static async Task<T> DeserializeAsync<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
             where T : BotApiEmptyResponse
         {
-            var responseStream = await responseMessage.Content.ReadAsStreamAsync();
-            var response = await JsonSerializer.DeserializeAsync<T>(responseStream, null, cancellationToken);
+            var response = await responseMessage.Content.ReadFromJsonAsync<T>(null, cancellationToken)
+                ?? throw new Exception("Unexpected empty response");
 
             if (response.ok)
                 return response;
@@ -100,7 +101,7 @@ namespace BotApi
                 429 => new TooManyRequestsException(
                     description: errMsg,
                     code: response.error_code,
-                    retryAfter: responseMessage.Headers.RetryAfter.Delta!.Value
+                    retryAfter: responseMessage.Headers.RetryAfter?.Delta
                 ),
                 _ => new BotApiException(
                   description: errMsg,

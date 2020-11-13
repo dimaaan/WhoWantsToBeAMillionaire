@@ -35,7 +35,7 @@ class Startup
             Environment.IsDevelopment() ?
                 "./state.json" :
                 "/var/tmp/millionaire/state.json", // there is no universal way to get tmp folder on UNIX, but this, at least, works for Ubuntu
-            provider.GetService<ILogger<StateSerializer>>()
+            provider.GetRequiredService<ILogger<StateSerializer>>()
         ));
         services.AddSingleton<Narrator>();
         services.AddSingleton<Game>();
@@ -49,8 +49,11 @@ class Startup
 
         static T LoadTexts<T>(string resourceName)
         {
-            using var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-            return JsonSerializer.DeserializeAsync<T>(stream).Result;
+            using var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)
+                ?? throw new Exception($"Embdeded resource {resourceName} not found");
+
+            return JsonSerializer.Deserialize<T>(new System.IO.StreamReader(stream).ReadToEnd())
+                ?? throw new Exception($"Embdeded resource {resourceName} is empty");
         }
     }
 
@@ -98,13 +101,13 @@ class Startup
         if (String.IsNullOrWhiteSpace(telegramOptions.Certificate))
             throw new Exception("Path to telegram certificate is required for non developer environment");
 
-        botApi.SetWebHookAsync(telegramOptions.WebhookAddress, telegramOptions.Certificate, cancellationToken).Wait();
+        botApi.SetWebHookAsync(telegramOptions.WebhookAddress, telegramOptions.Certificate, cancellationToken).Wait(cancellationToken);
         logger.LogInformation("Webhook set: {Url}", telegramOptions.WebhookAddress);
     }
 
     static void RemoveWebHook(BotApi.Client botApi, ILogger<Startup> logger, CancellationToken cancellationToken)
     {
-        botApi.DeleteWebhookAsync(cancellationToken).Wait();
+        botApi.DeleteWebhookAsync(cancellationToken).Wait(cancellationToken);
         logger.LogInformation("Webhook removed");
     }
 }

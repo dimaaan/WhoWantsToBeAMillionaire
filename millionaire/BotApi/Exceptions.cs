@@ -5,7 +5,7 @@ namespace BotApi
     /// <summary>
     /// Telegram Bot Api response error
     /// </summary>
-    class BotApiException: Exception
+    class BotApiException : Exception
     {
         public int Code { get; }
 
@@ -18,9 +18,9 @@ namespace BotApi
 
     class TooManyRequestsException : BotApiException
     {
-        public TimeSpan RetryAfter { get; }
+        public TimeSpan? RetryAfter { get; }
 
-        public TooManyRequestsException(string description, int code, TimeSpan retryAfter)
+        public TooManyRequestsException(string description, int code, TimeSpan? retryAfter)
             : base(description, code)
         {
             RetryAfter = retryAfter;
