@@ -159,5 +159,284 @@ namespace Tests
                 Assert.Matches(new Regex(@$"right variant: {rightVariant}, right answer: {a}\nНо вы заработали \d+ рублей, поздравляю!"), result);
             }
         }
+
+        public class HelpTests
+        {
+            [Fact]
+            public void ShouldReturnText()
+            {
+                // Act
+                var helpText = Narrator.Help();
+
+                // Assert
+                Assert.NotEmpty(helpText);
+            }
+        }
+
+        public class RightAnswerSpeechTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                EarnedCantFire = new[] { "EarnedCantFire,{0},{1},{2}" },
+                RightAnswer = new[] { "RightAnswer,{0},{1},{2}" }
+            });
+
+            readonly Question TestQuestion = Utils.CreateQuestion('A');
+
+            public static IEnumerable<object[]> ShouldReturnTextParams =>
+               Utils.Levels.Select(n => new object[] { n });
+
+            [Theory]
+            [MemberData(nameof(ShouldReturnTextParams))]
+            public void ShouldReturnText(byte level)
+            {
+                // Act
+                var text = narrator.RightAnswerSpeech(level, TestQuestion);
+
+                // Assert
+                Assert.Matches(new Regex(@"^(EarnedCantFire|RightAnswer),A,Answer A,\d+$"), text);
+            }
+
+            [Theory]
+            [InlineData(new object[] { 5 })]
+            [InlineData(new object[] { 10 })]
+            public void ShouldReturnEarnedCantFireTextOnQuestions5and10(byte level)
+            {
+                // Act
+                var text = narrator.RightAnswerSpeech(level, TestQuestion);
+
+                // Assert
+                Assert.StartsWith("EarnedCantFire", text);
+            }
+
+            public static IEnumerable<object[]> ShouldReturnRightAnswerTextOnAllQuestionsExcept5and10Params =>
+               Utils.Levels.Where(l => l != 5 && l != 10).Select(n => new object[] { n });
+
+            [Theory]
+            [MemberData(nameof(ShouldReturnRightAnswerTextOnAllQuestionsExcept5and10Params))]
+            public void ShouldReturnRightAnswerTextOnAllQuestionsExcept5and10(byte level)
+            {
+                // Act
+                var text = narrator.RightAnswerSpeech(level, TestQuestion);
+
+                // Assert
+                Assert.StartsWith("RightAnswer", text);
+            }
+        }
+
+        public class FiftyFiftyTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                FiftyFifty = new[] { "FiftyFifty" }
+            });
+
+            public static IEnumerable<object[]> AllVariants =>
+               Utils.Variants.Select(n => new object[] { n });
+
+            [Theory]
+            [MemberData(nameof(AllVariants))]
+            public void ShouldReturnText(char rightVariant)
+            {
+                // Arrange
+                var question = Utils.CreateQuestion(rightVariant);
+
+                // Act
+                var (text, _, _) = narrator.FiftyFifty(question);
+
+                // Assert
+                Assert.Contains("FiftyFifty", text);
+            }
+
+            [Theory]
+            [MemberData(nameof(AllVariants))]
+            public void ShouldNotRemoveRightVariant(char rightVariant)
+            {
+                // Arrange
+                var question = Utils.CreateQuestion(rightVariant);
+
+                // Act
+                var (_, removed, removed2) = narrator.FiftyFifty(question);
+
+                // Assert
+                Assert.NotEqual(rightVariant, removed);
+                Assert.NotEqual(rightVariant, removed2);
+            }
+        }
+
+        public class PeopleHelpTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                PeopleHelp = new[] { "PeopleHelp,{0},{1}" }
+            });
+
+            public static IEnumerable<object[]> ShouldReturnTextParams =>
+                from level in Utils.Levels
+                from rightVariant in Utils.Variants
+                from removed1 in Utils.Variants.Concat(new[] { default(char) })
+                from removed2 in Utils.Variants.Concat(new[] { default(char) })
+                where rightVariant != removed1 && rightVariant != removed2
+                select new object[] { level, rightVariant, removed1, removed2 };
+
+            [Theory]
+            [MemberData(nameof(ShouldReturnTextParams))]
+            public void ShouldReturnText(byte level, char rightVariant, char removed1, char removed2)
+            {
+                // Arrange
+                var userName = "userName";
+                var question = Utils.CreateQuestion(rightVariant);
+
+                // Act
+                var text = narrator.PeopleHelp(userName, level, question, removed1, removed2);
+
+                // Assert
+                Assert.Matches(new Regex(@"^PeopleHelp,userName,Question\nA \|-* \d+%\nB \|-* \d+%\nC \|-* \d+%\nD \|-* \d+%\n$"), text);
+            }
+        }
+
+        public class CallFriendTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                CallFriend = new[] { new[] { "CallFriend", "{0}", "{1}", "{2}", "{3}", "{4}" } },
+                FriendsNames = new[] { "Friend1" }
+            });
+
+            public static IEnumerable<object[]> ShouldReturnTextParams =>
+                from level in Utils.Levels
+                from rightVariant in Utils.Variants
+                from removed1 in Utils.Variants.Concat(new[] { default(char) })
+                from removed2 in Utils.Variants.Concat(new[] { default(char) })
+                where rightVariant != removed1 && rightVariant != removed2
+                select new object[] { level, rightVariant, removed1, removed2 };
+
+            [Theory]
+            [MemberData(nameof(ShouldReturnTextParams))]
+            public void ShoudReturnText(byte level, char rightVariant, char removed1, char removed2)
+            {
+                // Arrange
+                var userName = "userName";
+                var question = Utils.CreateQuestion(rightVariant);
+
+                // Act
+                var text = narrator.CallFriend(userName, level, question, removed1, removed2);
+
+                // Assert
+                Assert.Matches(new Regex(@"^CallFriend\nuserName\nFriend1\nQuestion\n[A-D]\nAnswer [A-D]$"), text);
+            }
+        }
+
+        public class TwoAnswersStep1Tests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                TwoAnswersStep1 = new[] { "TwoAnswersStep1" },
+            });
+
+            [Fact]
+            public void ShouldReturnText()
+            {
+                // Act
+                var text = narrator.TwoAnswersStep1();
+
+                // Assert
+                Assert.NotEmpty(text);
+            }
+        }
+
+        public class TwoAnswersStep2Tests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                TwoAnswersStep2 = new[] { "TwoAnswersStep2" },
+            });
+
+            [Fact]
+            public void ShouldReturnText()
+            {
+                // Act
+                var text = narrator.TwoAnswersStep2();
+
+                // Assert
+                Assert.NotEmpty(text);
+            }
+        }
+
+        public class NewQuestionTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                NewQuestion = new[] { "NewQuestion" },
+            });
+
+            [Fact]
+            public void ShouldReturnText()
+            {
+                // Act
+                var text = narrator.NewQuestion();
+
+                // Assert
+                Assert.NotEmpty(text);
+            }
+        }
+
+        public class TryAgainSpeechTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                TryAgain = new[] { "TryAgain" },
+            });
+
+            [Fact]
+            public void ShouldReturnText()
+            {
+                // Act
+                var text = narrator.TryAgainSpeech();
+
+                // Assert
+                Assert.NotEmpty(text);
+            }
+        }
+
+        public class WinSpeechTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                Win = new[] { "Win" },
+            });
+
+            [Fact]
+            public void ShouldReturnText()
+            {
+                // Act
+                var text = narrator.WinSpeech();
+
+                // Assert
+                Assert.NotEmpty(text);
+            }
+        }
+
+        public class RequestLimitSpeechTests
+        {
+            readonly Narrator narrator = new Narrator(new Speech
+            {
+                RequestLimit = new[] { "RequestLimit" },
+            });
+
+            [Fact]
+            public void ShouldReturnText()
+            {
+                // Arrange
+                var questionText = "text";
+                var delay = TimeSpan.FromSeconds(10);
+
+                // Act
+                var text = narrator.RequestLimitSpeech(questionText, delay);
+
+                // Assert
+                Assert.NotEmpty(text);
+            }
+        }
     }
 }

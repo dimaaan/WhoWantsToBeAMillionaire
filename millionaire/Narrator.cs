@@ -280,7 +280,6 @@ public class Speech
     /// 0 - variant char,
     /// 1 - variant text
     /// 2 - question sum
-    /// 3 - earned money
     /// </summary>
     public string[] RightAnswer { get; set; } = default!;
 
@@ -289,7 +288,6 @@ public class Speech
     /// 0 - variant char,
     /// 1 - variant text
     /// 2 - question sum
-    /// 3 - earned money
     /// </summary>
     public string[] EarnedCantFire { get; set; } = default!;
 
