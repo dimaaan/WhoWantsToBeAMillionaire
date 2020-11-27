@@ -57,7 +57,7 @@ namespace BotApi
             return await PostAsync<UpdateParams, Update[]>("getUpdates", payload, cancellationToken);
         }
 
-        public async Task<Message> SendMessageAsync(SendMessageParams payload, CancellationToken cancellationToken)
+        public virtual async Task<Message> SendMessageAsync(SendMessageParams payload, CancellationToken cancellationToken)
         {
             return await PostAsync<SendMessageParams, Message>("sendMessage", payload, cancellationToken);
         }
