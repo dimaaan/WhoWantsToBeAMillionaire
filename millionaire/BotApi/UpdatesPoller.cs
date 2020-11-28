@@ -45,6 +45,7 @@ namespace BotApi
             }
             catch (TaskCanceledException)
             {
+                Logger.LogInformation("Processing request aborted due to application shutdown");
             }
 
             Logger.LogInformation("Stopped");
