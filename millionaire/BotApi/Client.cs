@@ -9,7 +9,17 @@ using System.Net.Http.Json;
 
 namespace BotApi
 {
-    public class Client
+    public interface IClient
+    {
+        Task DeleteWebhookAsync(CancellationToken cancellationToken);
+        Task<User> GetMeAsync(CancellationToken cancellationToken);
+        Task<Update[]> GetUpdatesAsync(UpdateParams payload, CancellationToken cancellationToken);
+        Task<WebhookInfo> GetWebhookInfoAsync(CancellationToken cancellationToken);
+        Task<Message> SendMessageAsync(SendMessageParams payload, CancellationToken cancellationToken);
+        Task SetWebHookAsync(string uri, string certificatePath, CancellationToken cancellationToken);
+    }
+
+    public class Client : IClient
     {
         readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
         {

@@ -8,10 +8,10 @@ namespace BotApi
     class UpdatesPoller : BackgroundService
     {
         readonly ILogger<UpdatesPoller> Logger;
-        readonly Client BotApi;
+        readonly IClient BotApi;
         readonly Game GameService;
 
-        public UpdatesPoller(Client botApi, Game gameService, ILogger<UpdatesPoller> logger)
+        public UpdatesPoller(IClient botApi, Game gameService, ILogger<UpdatesPoller> logger)
         {
             Logger = logger;
             BotApi = botApi;
