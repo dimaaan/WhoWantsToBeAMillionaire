@@ -15,15 +15,12 @@ namespace Tests
             public async Task ShouldIgnoreMessageWithNoText()
             {
                 // Arrange
-                var fixture = new Fixture()
-                    .Customize(new AutoMoqCustomization());
+                var fixture = new Fixture().Customize(new AutoMoqCustomization());
 
                 fixture.Customize<BotApi.Message>(c => c.Without(m => m.text));
                 var update = fixture.Create<BotApi.Update>();
 
                 var client = fixture.Freeze<Mock<BotApi.IClient>>();
-                client.Setup(c => c.SendMessageAsync(It.IsAny<BotApi.SendMessageParams>(), CancellationToken.None)).ReturnsAsync(new BotApi.Message());
-
                 var game = fixture.Create<Game>();
 
                 // Act
@@ -37,15 +34,12 @@ namespace Tests
             public async Task ShouldIgnoreBots()
             {
                 // Arrange
-                var fixture = new Fixture()
-                    .Customize(new AutoMoqCustomization());
+                var fixture = new Fixture().Customize(new AutoMoqCustomization());
 
                 fixture.Customize<BotApi.User>(c => c.With(u => u.is_bot, true));
                 var update = fixture.Create<BotApi.Update>();
 
                 var client = fixture.Freeze<Mock<BotApi.IClient>>();
-                client.Setup(c => c.SendMessageAsync(It.IsAny<BotApi.SendMessageParams>(), CancellationToken.None)).ReturnsAsync(new BotApi.Message());
-
                 var game = fixture.Create<Game>();
 
                 // Act
@@ -63,8 +57,7 @@ namespace Tests
             public async Task ShouldDisplayHelp(string command)
             {
                 // Arrange
-                var fixture = new Fixture()
-                    .Customize(new AutoMoqCustomization());
+                var fixture = new Fixture().Customize(new AutoMoqCustomization());
 
                 fixture.Customize<BotApi.User>(c => c.With(u => u.is_bot, false));
                 fixture.Customize<BotApi.Message>(c => c.With(m => m.text, command));
