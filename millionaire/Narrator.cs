@@ -2,7 +2,27 @@
 using System.Collections.Generic;
 using System.Text;
 
-public class Narrator
+public interface INarrator
+{
+    string Help();
+    string AskQuestionSpeech(string userName, byte level, Question question);
+    string CallFriend(string userName, byte level, Question question, char removed1, char removed2);
+    (string text, char removed1, char removed2) FiftyFifty(Question question);
+    string FormatQuestion(Question question, char removed1 = default, char removed2 = default);
+    string Greetings(string userName);
+    string NewQuestion();
+    string PeopleHelp(string userName, byte level, Question question, char removed1, char removed2);
+    string ReplyToWrongAnswer(byte level, Question question);
+    string RequestLimitSpeech(string text, TimeSpan delay);
+    short PickRandomIndex<T>(ICollection<T> c);
+    string RightAnswerSpeech(byte level, Question question);
+    string TryAgainSpeech();
+    string TwoAnswersStep1();
+    string TwoAnswersStep2();
+    string WinSpeech();
+}
+
+public class Narrator : INarrator
 {
     static readonly Random Rnd = new Random();
 
@@ -32,7 +52,7 @@ public class Narrator
         Speech = speech;
     }
 
-    public static string Help() =>
+    public string Help() =>
         @"*Правила игры*
 Чтобы заработать миллион рублей, нужно ответить на 15 вопросов.
 Каждый вопрос имеет 4 варианта ответа, из которых только один является верным.
@@ -119,7 +139,7 @@ dimaaan@gmail.com";
         return (text, removed1, removed2);
     }
 
-    public static string FormatQuestion(Question question, char removed1 = default, char removed2 = default)
+    public string FormatQuestion(Question question, char removed1 = default, char removed2 = default)
     {
         var text = new StringBuilder(question.Text);
         text.Append('\n');
@@ -205,7 +225,7 @@ dimaaan@gmail.com";
     TItem PickRandomItem<TItem>(IList<TItem> items) =>
         items[PickRandomIndex(items)];
 
-    public static short PickRandomIndex<T>(ICollection<T> c) =>
+    public short PickRandomIndex<T>(ICollection<T> c) =>
         (short)Rnd.Next(c.Count);
 
     char GuessAnswer(double[] probability, IList<char> availableVariants, char rightVariant, byte level) =>

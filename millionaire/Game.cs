@@ -11,7 +11,7 @@ public sealed class Game : IDisposable
 {
     readonly IClient BotApi;
     readonly Question[][] Questions;
-    readonly Narrator Narrator;
+    readonly INarrator Narrator;
     readonly ILogger<Game> Logger;
     readonly ConcurrentDictionary<long, States.State> Games;
     readonly StateSerializer StateSerializer;
@@ -40,7 +40,7 @@ public sealed class Game : IDisposable
         public const string Help = "/help";
     }
 
-    public Game(IClient botApi, Question[][] questions, Narrator narrator, ILogger<Game> logger, StateSerializer stateSerializer, EventLogger eventLogger)
+    public Game(IClient botApi, Question[][] questions, INarrator narrator, ILogger<Game> logger, StateSerializer stateSerializer, EventLogger eventLogger)
     {
         BotApi = botApi;
         Questions = questions;

@@ -63,8 +63,14 @@ namespace Tests
                 fixture.Customize<BotApi.Message>(c => c.With(m => m.text, command));
                 var update = fixture.Create<BotApi.Update>();
 
+                var expectedHelp = fixture.Create<string>();
+                var narrator = fixture.Freeze<Mock<INarrator>>();
+                narrator.Setup(n => n.Help())
+                    .Returns(expectedHelp)
+                    .Verifiable();
+
                 var client = fixture.Freeze<Mock<BotApi.IClient>>();
-                client.Setup(c => c.SendMessageAsync(It.Is<BotApi.SendMessageParams>(m => m.chat_id == update.message!.chat.id && m.text == Narrator.Help()), CancellationToken.None))
+                client.Setup(c => c.SendMessageAsync(It.Is<BotApi.SendMessageParams>(m => m.chat_id == update.message!.chat.id && m.text == expectedHelp), CancellationToken.None))
                     .ReturnsAsync(update.message!)
                     .Verifiable();
 
@@ -75,6 +81,40 @@ namespace Tests
 
                 // Assert
                 client.VerifyAll();
+                client.VerifyNoOtherCalls();
+            }
+
+            [Fact]
+            public async Task ShouldGreetPlayerWhenGameStarts()
+            {
+                // Arrange
+                var fixture = new Fixture().Customize(new AutoMoqCustomization());
+
+                var userFirstName = "userName";
+                fixture.Customize<BotApi.User>(c => c.With(u => u.is_bot, false).With(u => u.first_name, userFirstName));
+                fixture.Customize<BotApi.Message>(c => c.With(m => m.text, "Hi there"));
+                var update = fixture.Create<BotApi.Update>();
+
+                var expectedGreetings = $"Hi, {userFirstName}";
+                var narrator = fixture.Freeze<Mock<INarrator>>();
+                narrator.Setup(n => n.Greetings(userFirstName))
+                    .Returns(expectedGreetings)
+                    .Verifiable();
+
+                var client = fixture.Freeze<Mock<BotApi.IClient>>();
+                client.Setup(c => c.SendMessageAsync(It.Is<BotApi.SendMessageParams>(m => m.text.StartsWith(expectedGreetings)), CancellationToken.None))
+                    .ReturnsAsync(update.message!)
+                    .Verifiable();
+
+                var game = fixture.Create<Game>();
+
+                // Act
+                await game.UpdateGame(update, CancellationToken.None);
+
+                // Assert
+                narrator.Verify();
+
+                client.Verify();
                 client.VerifyNoOtherCalls();
             }
         }

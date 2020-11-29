@@ -37,7 +37,7 @@ class Startup
                 "/var/tmp/millionaire/state.json", // there is no universal way to get tmp folder on UNIX, but this, at least, works for Ubuntu
             provider.GetRequiredService<ILogger<StateSerializer>>()
         ));
-        services.AddSingleton<Narrator>();
+        services.AddSingleton<INarrator, Narrator>();
         services.AddSingleton<Game>();
         services.AddSingleton(Configuration.GetSection("Sqlite").Get<SqliteOptions>());
         services.AddSingleton<EventLogger>();

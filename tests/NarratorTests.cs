@@ -165,8 +165,11 @@ namespace Tests
             [Fact]
             public void ShouldReturnText()
             {
+                // Arrange
+                var narrator = new Narrator(new Speech());
+
                 // Act
-                var helpText = Narrator.Help();
+                var helpText = narrator.Help();
 
                 // Assert
                 Assert.NotEmpty(helpText);
