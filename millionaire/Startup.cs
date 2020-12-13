@@ -32,7 +32,7 @@ class Startup
         services.AddSingleton(LoadTexts<Speech>("millionaire.speech.json"));
         services.AddSingleton(LoadTexts<Question[][]>("millionaire.questions.json"));
         services.AddHttpClient<BotApi.IClient, BotApi.Client>(c => c.BaseAddress = new Uri($@"https://api.telegram.org/bot{telegramOptions.ApiKey}/"));
-        services.AddSingleton(provider => new StateSerializer(
+        services.AddSingleton<IStateSerializer>(provider => new StateSerializer(
             Environment.IsDevelopment() ?
                 "./state.json" :
                 "/var/tmp/millionaire/state.json", // there is no universal way to get tmp folder on UNIX, but this, at least, works for Ubuntu

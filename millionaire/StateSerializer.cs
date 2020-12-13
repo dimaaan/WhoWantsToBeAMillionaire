@@ -4,7 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-public class StateSerializer
+public interface IStateSerializer
+{
+    IEnumerable<KeyValuePair<long, States.State>> Load();
+    void Save(IEnumerable<KeyValuePair<long, States.State>> games);
+}
+
+public class StateSerializer : IStateSerializer
 {
     readonly string StateFile;
     readonly ILogger<StateSerializer> Logger;
