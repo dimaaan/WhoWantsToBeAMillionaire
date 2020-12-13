@@ -83,6 +83,26 @@ public static class GameTests
         }
 
         [Fact]
+        public async Task ShouldChangeUpdatedAt() {
+            // Arrange
+            var fixture = new Fixture().Customize(new AutoMoqCustomization());
+
+            var userFirstName = "userName";
+            fixture.Customize<BotApi.User>(c => c.With(u => u.is_bot, false).With(u => u.first_name, userFirstName));
+            fixture.Customize<BotApi.Message>(c => c.With(m => m.text, "Hi there"));
+            var update = fixture.Create<BotApi.Update>();
+
+            var game = fixture.Create<Game>();
+            var prevUpdated = game.LastUpdatedAt;
+
+            // Act
+            await game.UpdateGame(update, CancellationToken.None);
+
+            // Assert
+            Assert.NotEqual(prevUpdated, game.LastUpdatedAt);
+        }
+
+        [Fact]
         public async Task ShouldGreetPlayerWhenGameStarts()
         {
             // Arrange
