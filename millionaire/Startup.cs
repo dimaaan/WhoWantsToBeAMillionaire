@@ -25,7 +25,8 @@ class Startup
     {
         services.AddRazorPages();
 
-        var telegramOptions = Configuration.GetSection("Telegram").Get<TelegramOptions>();
+        var telegramOptions = Configuration.GetSection("Telegram").Get<TelegramOptions?>()
+            ?? throw new Exception("Telegram configuration not found");
         services.AddSingleton(telegramOptions);
 
         services.AddSingleton(LoadTexts<Speech>("millionaire.speech.json"));
@@ -39,7 +40,8 @@ class Startup
         ));
         services.AddSingleton<INarrator, Narrator>();
         services.AddSingleton<Game>();
-        services.AddSingleton(Configuration.GetSection("Sqlite").Get<SqliteOptions>());
+        services.AddSingleton(Configuration.GetSection("Sqlite").Get<SqliteOptions?>()
+            ?? throw new Exception("Sqlite configuration not found"));
         services.AddSingleton<EventLogger>();
 
         if (Environment.IsDevelopment())
