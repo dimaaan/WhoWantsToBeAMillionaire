@@ -76,6 +76,8 @@ class Startup
             endpoints.MapRazorPages();
         });
 
+        app.UseStaticFiles();
+
         if (!Environment.IsDevelopment())
         {
             lifetime.ApplicationStarted.Register(() => SetWebHook(botApi, logger, telegramOptions, lifetime.ApplicationStopping));

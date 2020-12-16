@@ -31,5 +31,9 @@
       <_Parameter1>tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
   
 </Project>
