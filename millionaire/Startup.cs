@@ -102,9 +102,6 @@ class Startup
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
             logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
 
-        if (String.IsNullOrWhiteSpace(telegramOptions.Certificate))
-            throw new Exception("Path to telegram certificate is required for non developer environment");
-
         botApi.SetWebHookAsync(telegramOptions.WebhookAddress, telegramOptions.Certificate, cancellationToken).Wait(cancellationToken);
         logger.LogInformation("Webhook set: {Url}", telegramOptions.WebhookAddress);
     }

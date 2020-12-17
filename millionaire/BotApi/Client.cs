@@ -16,7 +16,7 @@ namespace BotApi
         Task<Update[]> GetUpdatesAsync(UpdateParams payload, CancellationToken cancellationToken);
         Task<WebhookInfo> GetWebhookInfoAsync(CancellationToken cancellationToken);
         Task<Message> SendMessageAsync(SendMessageParams payload, CancellationToken cancellationToken);
-        Task SetWebHookAsync(string uri, string certificatePath, CancellationToken cancellationToken);
+        Task SetWebHookAsync(string uri, string? certificatePath, CancellationToken cancellationToken);
     }
 
     public class Client : IClient
@@ -42,15 +42,24 @@ namespace BotApi
             return await GetAsync<WebhookInfo>("getWebhookInfo", cancellationToken);
         }
 
-        public async Task SetWebHookAsync(string uri, string certificatePath, CancellationToken cancellationToken)
+        public async Task SetWebHookAsync(string uri, string? certificatePath, CancellationToken cancellationToken)
         {
-            var content = new MultipartFormDataContent
-        {
-            { new StringContent(uri), "url" },
-            { new ByteArrayContent(File.ReadAllBytes(certificatePath)), "certificate", certificatePath }
-        };
+            bool result;
 
-            var result = await PostAsync<bool>("setWebhook", content, cancellationToken);
+            if (String.IsNullOrWhiteSpace(certificatePath))
+            {
+                result = await GetAsync<bool>($"setWebhook?url={uri}", cancellationToken);
+            }
+            else
+            {
+                var content = new MultipartFormDataContent
+                {
+                    { new StringContent(uri), "url" },
+                    { new ByteArrayContent(File.ReadAllBytes(certificatePath)), "certificate", certificatePath }
+                };
+
+                result = await PostAsync<bool>("setWebhook", content, cancellationToken);
+            }
 
             if (!result)
                 throw new Exception("Setting webhook failed");
