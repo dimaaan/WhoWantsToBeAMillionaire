@@ -83,7 +83,8 @@ public static class GameTests
         }
 
         [Fact]
-        public async Task ShouldChangeUpdatedAt() {
+        public async Task ShouldChangeUpdatedAt()
+        {
             // Arrange
             var fixture = new Fixture().Customize(new AutoMoqCustomization());
 
@@ -113,6 +114,11 @@ public static class GameTests
             fixture.Customize<BotApi.Message>(c => c.With(m => m.text, "Hi there"));
             var update = fixture.Create<BotApi.Update>();
 
+            var sessions = fixture.Freeze<Mock<ISessions>>();
+            sessions.Setup(s => s.Get(It.IsAny<long>()))
+                .Returns<States.State>(null)
+                .Verifiable();
+
             var expectedGreetings = $"Hi, {userFirstName}";
             var narrator = fixture.Freeze<Mock<INarrator>>();
             narrator.Setup(n => n.Greetings(userFirstName))
@@ -131,6 +137,8 @@ public static class GameTests
 
             // Assert
             narrator.Verify();
+
+            sessions.Verify();
 
             client.Verify();
             client.VerifyNoOtherCalls();

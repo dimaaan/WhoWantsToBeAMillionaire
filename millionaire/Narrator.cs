@@ -6,12 +6,12 @@ public interface INarrator
 {
     string Help();
     string AskQuestionSpeech(string userName, byte level, Question question);
-    string CallFriend(string userName, byte level, Question question, char removed1, char removed2);
+    string CallFriend(string userName, byte level, Question question, char? removed1, char? removed2);
     (string text, char removed1, char removed2) FiftyFifty(Question question);
     string FormatQuestion(Question question, char removed1 = default, char removed2 = default);
     string Greetings(string userName);
     string NewQuestion();
-    string PeopleHelp(string userName, byte level, Question question, char removed1, char removed2);
+    string PeopleHelp(string userName, byte level, Question question, char? removed1, char? removed2);
     string ReplyToWrongAnswer(byte level, Question question);
     string RequestLimitSpeech(string text, TimeSpan delay);
     short PickRandomIndex<T>(ICollection<T> c);
@@ -157,11 +157,15 @@ dimaaan@gmail.com";
         }
     }
 
-    public string PeopleHelp(string userName, byte level, Question question, char removed1, char removed2)
+    public string PeopleHelp(string userName, byte level, Question question, char? removed1, char? removed2)
     {
         var availableVariants = new List<char>(4) { 'A', 'B', 'C', 'D' };
-        availableVariants.Remove(removed1);
-        availableVariants.Remove(removed2);
+
+        if (removed1 != null)
+            availableVariants.Remove(removed1.Value);
+
+        if (removed2 != null)
+            availableVariants.Remove(removed2.Value);
 
         Span<(char Var, byte Percent)> tableRows = stackalloc (char, byte)[]
         {
@@ -192,11 +196,15 @@ dimaaan@gmail.com";
         return table.ToString();
     }
 
-    public string CallFriend(string userName, byte level, Question question, char removed1, char removed2)
+    public string CallFriend(string userName, byte level, Question question, char? removed1, char? removed2)
     {
         var availableVariants = new List<char> { 'A', 'B', 'C', 'D' };
-        availableVariants.Remove(removed1);
-        availableVariants.Remove(removed2);
+
+        if (removed1 != null)
+            availableVariants.Remove(removed1.Value);
+
+        if (removed2 != null)
+            availableVariants.Remove(removed2.Value);
 
         var template = String.Join('\n', PickRandomItem(Speech.CallFriend));
         var friendName = PickRandomItem(Speech.FriendsNames);

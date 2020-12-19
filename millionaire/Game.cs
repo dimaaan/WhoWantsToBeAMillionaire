@@ -2,19 +2,17 @@
 using Events;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-public sealed class Game : IDisposable
+public sealed class Game
 {
     readonly IClient BotApi;
     readonly Question[][] Questions;
     readonly INarrator Narrator;
     readonly ILogger<Game> Logger;
-    readonly ConcurrentDictionary<long, States.State> Games;
-    readonly IStateSerializer StateSerializer;
+    readonly ISessions Sessions;
     readonly EventLogger EventLogger;
 
     static class YesNoAnswers
@@ -40,23 +38,15 @@ public sealed class Game : IDisposable
         public const string Help = "/help";
     }
 
-    public Game(IClient botApi, Question[][] questions, INarrator narrator, ILogger<Game> logger, IStateSerializer stateSerializer, EventLogger eventLogger)
+    public Game(IClient botApi, Question[][] questions, INarrator narrator, ILogger<Game> logger, ISessions sessions, EventLogger eventLogger)
     {
         BotApi = botApi;
         Questions = questions;
         Narrator = narrator;
         Logger = logger;
-        StateSerializer = stateSerializer;
-        Games = new ConcurrentDictionary<long, States.State>(stateSerializer.Load());
+        Sessions = sessions;
         EventLogger = eventLogger;
     }
-
-    public void Dispose()
-    {
-        StateSerializer.Save(Games);
-    }
-
-    public int GamesCount => Games.Count;
 
     long _lastUpdatedAt;
     public DateTimeOffset LastUpdatedAt
@@ -82,9 +72,9 @@ public sealed class Game : IDisposable
             return;
         }
 
-        Games.TryGetValue(update.message.chat.id, out var game);
+        var state = Sessions.Get(update.message.chat.id);
 
-        switch (game)
+        switch (state)
         {
             case null:
                 await OnStartState(update.message, cancellationToken);
@@ -99,7 +89,7 @@ public sealed class Game : IDisposable
                 await OnOverState(update.message, cancellationToken);
                 break;
             default:
-                Logger.LogWarning("Unknown game state: {Game}", game);
+                Logger.LogWarning("Unknown game state: {State}", state);
                 break;
         }
 
@@ -220,7 +210,7 @@ public sealed class Game : IDisposable
                 await StartGame(msg, "", cancellationToken);
                 break;
             case "нет":
-                Games.TryRemove(msg.chat.id, out _);
+                Sessions.Remove(msg.chat.id);
                 break;
             default:
                 await ReplyTo(msg, "Отвечайте \"да\" или \"нет\"", cancellationToken, YesNoKeyboard);
@@ -244,7 +234,7 @@ public sealed class Game : IDisposable
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        Games[msg.chat.id] = newState;
+        Sessions.Update(msg.chat.id, newState);
     }
 
     async Task FiftyFifty(Message msg, States.Playing state, CancellationToken cancellationToken)
@@ -260,9 +250,9 @@ public sealed class Game : IDisposable
         var newState = new States.Playing(state.Level, state.Question, state.UsedHints | States.Playing.Hints.FiftyFifty, removed1, removed2);
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        EventLogger.Hint(msg, state.Level, state.Question, "50", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "50");
 
-        Games[msg.chat.id] = newState;
+        Sessions.Update(msg.chat.id, newState);
     }
 
     async Task CallFirend(Message msg, States.Playing state, CancellationToken cancellationToken)
@@ -279,9 +269,9 @@ public sealed class Game : IDisposable
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        EventLogger.Hint(msg, state.Level, state.Question, "cf", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "cf");
 
-        Games[msg.chat.id] = newState;
+        Sessions.Update(msg.chat.id, newState);
     }
 
     async Task PeopleHelp(Message msg, States.Playing state, CancellationToken cancellationToken)
@@ -298,9 +288,9 @@ public sealed class Game : IDisposable
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        EventLogger.Hint(msg, state.Level, state.Question, "ph", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "ph");
 
-        Games[msg.chat.id] = newState;
+        Sessions.Update(msg.chat.id, newState);
     }
 
     async Task TwoAnswersBegin(Message msg, States.Playing state, CancellationToken cancellationToken)
@@ -315,9 +305,9 @@ public sealed class Game : IDisposable
         var newState = new States.WaitingTwoAnswers(state);
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        EventLogger.Hint(msg, state.Level, state.Question, "2a", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "2a");
 
-        Games[msg.chat.id] = newState;
+        Sessions.Update(msg.chat.id, newState);
     }
 
     async Task TwoAnswersSetFirstAnswer(Message msg, char firstAnswer, States.WaitingTwoAnswers state, CancellationToken cancellationToken)
@@ -327,7 +317,7 @@ public sealed class Game : IDisposable
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
 
-        Games[msg.chat.id] = newState;
+        Sessions.Update(msg.chat.id, newState);
     }
 
     async Task TwoAnswersFinish(Message msg, char secondAnswer, States.WaitingTwoAnswers state, CancellationToken cancellationToken)
@@ -361,9 +351,9 @@ public sealed class Game : IDisposable
         var newState = new States.Playing(state.Level, questionIndex, state.UsedHints | States.Playing.Hints.NwQuestion);
 
         await ReplyTo(msg, text, cancellationToken, AnswersKeyboard(newState));
-        EventLogger.Hint(msg, state.Level, state.Question, "nq", cancellationToken);
+        EventLogger.Hint(msg, state.Level, state.Question, "nq");
 
-        Games[msg.chat.id] = newState;
+        Sessions.Update(msg.chat.id, newState);
     }
 
     static ReplyKeyboardMarkup AnswersKeyboard(States.Playing state)
@@ -434,7 +424,7 @@ public sealed class Game : IDisposable
 
     async Task GameOver(Message msg, string preamble, CancellationToken cancellationToken)
     {
-        Games[msg.chat.id] = new States.Over();
+        Sessions.Update(msg.chat.id, new States.Over());
         var text = $"{preamble}\n{Narrator.TryAgainSpeech()}";
         await ReplyTo(msg, text, cancellationToken, YesNoKeyboard);
     }

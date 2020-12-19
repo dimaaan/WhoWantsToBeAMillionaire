@@ -3,6 +3,7 @@
 @using Humanizer;
 @using Humanizer.Localisation;
 @inject Game gameService
+@inject ISessions sessions
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,7 +30,7 @@
     );
   }
   <samp>
-    Games: @gameService.GamesCount
+    Sessions: @sessions.Count()
     <br />
     Last activity @idleTimeFormatted ago. At @lastUpdatedFormatted.
   </samp>

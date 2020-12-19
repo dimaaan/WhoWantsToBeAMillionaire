@@ -37,7 +37,7 @@ namespace Events
             );
         }
 
-        public void Hint(Message msg, byte level, short question, string hint, CancellationToken cancellationToken)
+        public void Hint(Message msg, byte level, short question, string hint)
         {
             LogEvent(msg,
                 level: level,
