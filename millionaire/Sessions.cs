@@ -68,7 +68,7 @@ public class Sessions : ISessions
         using var command = connection.CreateCommand();
         command.CommandText = @"REPLACE INTO Sessions (chat, state, level, question, usedHints, removed1, removed2, firstAnswer) VALUES ($chat, $state, $level, $question, $usedHints, $removed1, $removed2, $firstAnswer)";
 
-        object chat = chatId, stateId, level, question, usedHints, removed1, removed2, firstAnswer;
+        object stateId, level, question, usedHints, removed1, removed2, firstAnswer;
 
         switch (state)
         {
