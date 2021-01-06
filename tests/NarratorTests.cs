@@ -53,15 +53,7 @@ public static class NarratorTests
             var b = "answer b";
             var c = "answer c";
             var d = "answer d";
-            var question = new Question
-            {
-                Text = questionText,
-                A = a,
-                B = b,
-                C = c,
-                D = d,
-                RightVariant = rightVariant
-            };
+            var question = new Question(questionText, a, b, c, d, rightVariant);
 
             // Act
             var result = narrator.AskQuestionSpeech(userName, level, question);
@@ -82,8 +74,11 @@ public static class NarratorTests
         [Fact]
         public void ShouldUseFirstQuestion()
         {
+            // Arrange
+            var question = Utils.CreateQuestion();
+
             // Act
-            var result = narrator.AskQuestionSpeech("", 0, new Question());
+            var result = narrator.AskQuestionSpeech("", 0, question);
 
             // Assert
             Assert.StartsWith("First question", result);
@@ -96,8 +91,11 @@ public static class NarratorTests
         [MemberData(nameof(ShouldUseNotFirstQuestionParams))]
         public void ShouldUseNotFirstQuestion(byte level)
         {
+            // Arrange
+            var question = Utils.CreateQuestion();
+
             // Act
-            var result = narrator.AskQuestionSpeech("", level, new Question());
+            var result = narrator.AskQuestionSpeech("", level, question);
 
             // Assert
             Assert.StartsWith("Not first question", result);
@@ -121,11 +119,7 @@ public static class NarratorTests
             // Arrange
             var a = "answer A";
             var rightVariant = 'A';
-            var question = new Question
-            {
-                A = a,
-                RightVariant = rightVariant,
-            };
+            var question = Utils.CreateQuestion(a: a, rightAVariant: rightVariant);
 
             // Act
             var result = narrator.ReplyToWrongAnswer(level, question);
@@ -144,11 +138,7 @@ public static class NarratorTests
             // Arrange
             var a = "answer A";
             var rightVariant = 'A';
-            var question = new Question
-            {
-                A = a,
-                RightVariant = rightVariant,
-            };
+            var question = Utils.CreateQuestion(a: a, rightAVariant: rightVariant);
 
             // Act
             var result = narrator.ReplyToWrongAnswer(level, question);

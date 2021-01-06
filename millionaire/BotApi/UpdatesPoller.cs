@@ -26,11 +26,12 @@ namespace BotApi
             {
                 await BotApi.DeleteWebhookAsync(stoppingToken);
 
-                var request = new UpdateParams
-                {
-                    offset = 0,
-                    timeout = 1,
-                };
+                var request = new UpdateParams(
+                    offset: 0,
+                    limit: null,
+                    timeout: 1,
+                    allowed_updates: null
+                );
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -39,7 +40,7 @@ namespace BotApi
                     foreach (var update in updates)
                     {
                         await GameService.UpdateGame(update, stoppingToken);
-                        request.offset = update.update_id + 1;
+                        request = request with { offset = update.update_id + 1 };
                     }
                 }
             }

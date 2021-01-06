@@ -21,16 +21,15 @@ public sealed class Game
         public const string No = "нет";
     }
 
-    static readonly ReplyKeyboardMarkup YesNoKeyboard = new ReplyKeyboardMarkup()
-    {
-        keyboard = new KeyboardButton[][] {
+    static readonly ReplyKeyboardMarkup YesNoKeyboard = new(
+        keyboard: new KeyboardButton[][] {
             new [] {
-                new KeyboardButton { text = YesNoAnswers.Yes },
-                new KeyboardButton { text = YesNoAnswers.No },
+                new KeyboardButton(text: YesNoAnswers.Yes),
+                new KeyboardButton(text: YesNoAnswers.No),
             },
         },
-        one_time_keyboard = false
-    };
+        one_time_keyboard: false
+    );
 
     static class Commands
     {
@@ -358,11 +357,10 @@ public sealed class Game
 
     static ReplyKeyboardMarkup AnswersKeyboard(States.Playing state)
     {
-        return new ReplyKeyboardMarkup
-        {
-            keyboard = Buttons(state),
-            one_time_keyboard = false,
-        };
+        return new ReplyKeyboardMarkup(
+            keyboard: Buttons(state),
+            one_time_keyboard: false
+        );
 
         static IEnumerable<IEnumerable<KeyboardButton>> Buttons(States.Playing state)
         {
@@ -394,7 +392,7 @@ public sealed class Game
                         || variant == state.Removed2
                         || (state is States.WaitingTwoAnswers w && variant == w.FirstAnswer);
 
-                    button = !removed ? new KeyboardButton { text = variant.ToString() } : null;
+                    button = !removed ? new KeyboardButton(text: variant.ToString()) : null;
                     return removed;
                 }
             }
@@ -402,22 +400,22 @@ public sealed class Game
             static IEnumerable<KeyboardButton> HintButtonsRow1(States.Playing.Hints usedHints)
             {
                 if (!usedHints.HasFlag(States.Playing.Hints.FiftyFifty))
-                    yield return new KeyboardButton { text = Answers.FiftyFifty };
+                    yield return new KeyboardButton(text: Answers.FiftyFifty);
 
                 if (!usedHints.HasFlag(States.Playing.Hints.CallFriend))
-                    yield return new KeyboardButton { text = Answers.CallFriend };
+                    yield return new KeyboardButton(text: Answers.CallFriend);
 
                 if (!usedHints.HasFlag(States.Playing.Hints.PeopleHelp))
-                    yield return new KeyboardButton { text = Answers.PeopleHelp };
+                    yield return new KeyboardButton(text: Answers.PeopleHelp);
             }
 
             static IEnumerable<KeyboardButton> HintButtonsRow2(States.Playing.Hints usedHints)
             {
                 if (!usedHints.HasFlag(States.Playing.Hints.TwoAnswers))
-                    yield return new KeyboardButton { text = Answers.TwoAnswers };
+                    yield return new KeyboardButton(text: Answers.TwoAnswers);
 
                 if (!usedHints.HasFlag(States.Playing.Hints.NwQuestion))
-                    yield return new KeyboardButton { text = Answers.NwQuestion };
+                    yield return new KeyboardButton(text: Answers.NwQuestion);
             }
         }
     }
@@ -431,14 +429,13 @@ public sealed class Game
 
     async Task ReplyTo(Message msg, string text, CancellationToken cancellationToken, ReplyKeyboardMarkup? markup = null, bool markdown = false)
     {
-        var payload = new SendMessageParams
-        {
-            chat_id = msg.chat.id,
-            text = text,
-            parse_mode = markdown ? "Markdown" : null,
-            disable_notification = true,
-            reply_markup = markup
-        };
+        var payload = new SendMessageParams(
+            chat_id: msg.chat.id,
+            text: text,
+            parse_mode: markdown ? "Markdown" : null,
+            disable_notification: true,
+            reply_markup: markup
+        );
 
         try
         {
@@ -467,14 +464,13 @@ public sealed class Game
 
             await Task.Delay(retryAfter);
 
-            payload = new SendMessageParams
-            {
-                chat_id = msg.chat.id,
-                text = Narrator.RequestLimitSpeech(text, retryAfter),
-                parse_mode = markdown ? "Markdown" : null,
-                disable_notification = true,
-                reply_markup = markup
-            };
+            payload = new SendMessageParams(
+                chat_id: msg.chat.id,
+                text: Narrator.RequestLimitSpeech(text, retryAfter),
+                parse_mode: markdown ? "Markdown" : null,
+                disable_notification: true,
+                reply_markup: markup
+            );
 
             await BotApi.SendMessageAsync(payload, cancellationToken);
         }
@@ -485,15 +481,8 @@ public sealed class Game
     }
 }
 
-public class Question
+public record Question(string Text, string A, string B, string C, string D, char RightVariant)
 {
-    public string Text { get; set; } = default!;
-    public string A { get; set; } = default!;
-    public string B { get; set; } = default!;
-    public string C { get; set; } = default!;
-    public string D { get; set; } = default!;
-    public char RightVariant { get; set; }
-
     public string RightAnswer => AnswerOf(RightVariant);
 
     public string AnswerOf(char variant) => variant switch

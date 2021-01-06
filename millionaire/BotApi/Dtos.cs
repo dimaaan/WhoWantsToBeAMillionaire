@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Collections.Generic;
 
 /* 
  * Supress naming style warnings.
@@ -11,99 +9,77 @@ using System.Text.Json;
 
 namespace BotApi
 {
-    public class BotApiDto
-    {
-        static readonly JsonSerializerOptions JsonOpts = new JsonSerializerOptions
-        {
-            IgnoreNullValues = true
-        };
+    public record BotApiEmptyResponse(
+        bool ok,
+        int error_code,
+        string? description
+    );
 
-        public override string ToString()
-        {
-            return JsonSerializer.Serialize(this, GetType(), JsonOpts);
-        }
-    }
+    public record BotApiResponse<T>(
+        bool ok,
+        int error_code,
+        string? description,
+        T result
+    ) : BotApiEmptyResponse(ok, error_code, description);
 
-    public class BotApiEmptyResponse : BotApiDto
-    {
-        public bool ok { get; set; }
-        public int error_code { get; set; }
-        public string? description { get; set; }
-    }
+    public record WebhookInfo(
+        string url,
+        bool has_custom_certificate,
+        int pending_update_count,
+        long? last_error_date,
+        string? last_error_message,
+        int? max_connections,
+        string[]? allowed_updates
+    );
 
-    public class BotApiResponse<T> : BotApiEmptyResponse
-    {
-        public T result { get; set; } = default!;
-    }
+    public record UpdateParams(
+        int? offset,
+        int? limit,
+        int? timeout,
+        string[]? allowed_updates
+    );
 
-    public class WebhookInfo : BotApiDto
-    {
-        public string url { get; set; } = default!;
-        public bool has_custom_certificate { get; set; }
-        public int pending_update_count { get; set; }
-        public long? last_error_date { get; set; }
-        public string? last_error_message { get; set; }
-        public int? max_connections { get; set; }
-        public string[]? allowed_updates { get; set; }
-    }
+    public record Update(
+        int update_id,
+        Message? message
+    );
 
-    public class UpdateParams : BotApiDto
-    {
-        public int? offset { get; set; }
-        public int? limit { get; set; }
-        public int? timeout { get; set; }
-        public string[]? allowed_updates { get; set; }
-    }
+    public record SendMessageParams(
+        long chat_id,
+        string text,
+        string? parse_mode,
+        bool? disable_notification,
+        ReplyKeyboardMarkup? reply_markup
+    );
 
-    public class Update : BotApiDto
-    {
-        public int update_id { get; set; }
-        public Message? message { get; set; }
-    }
+    public record Message(
+        int message_id,
+        User from,
+        int date,
+        Chat chat,
+        string? text
+    );
 
-    public class SendMessageParams : BotApiDto
-    {
-        public long chat_id { get; set; }
-        public string text { get; set; } = default!;
-        public string? parse_mode { get; set; }
-        public bool? disable_notification { get; set; }
-        public ReplyKeyboardMarkup? reply_markup { get; set; }
-    }
+    public record User(
+        int id,
+        bool is_bot,
+        string first_name,
+        string? last_name,
+        string? username,
+        string? language_code
+    );
 
-    public class Message : BotApiDto
-    {
-        public int message_id { get; set; }
-        public User from { get; set; } = default!;
-        public int date { get; set; }
-        public Chat chat { get; set; } = default!;
-        public string? text { get; set; }
-    }
+    public record Chat(
+        long id,
+        string type
+    );
 
-    public class User : BotApiDto
-    {
-        public int id { get; set; }
-        public bool is_bot { get; set; }
-        public string first_name { get; set; } = default!;
-        public string? last_name { get; set; }
-        public string? username { get; set; }
-        public string? language_code { get; set; }
-    }
+    public record ReplyKeyboardMarkup(
+        IEnumerable<IEnumerable<KeyboardButton>> keyboard,
+        bool? one_time_keyboard
+    );
 
-    public class Chat : BotApiDto
-    {
-        public long id { get; set; }
-        public string type { get; set; } = default!;
-    }
-
-    public class ReplyKeyboardMarkup : BotApiDto
-    {
-        public IEnumerable<IEnumerable<KeyboardButton>> keyboard { get; set; } = default!;
-        public bool? one_time_keyboard { get; set; }
-    }
-
-    public class KeyboardButton : BotApiDto
-    {
-        public string text { get; set; } = default!;
-    }
-
+    public record KeyboardButton(
+        string text
+    );
 }
