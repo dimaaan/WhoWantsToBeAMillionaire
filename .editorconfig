@@ -17,5 +17,8 @@ dotnet_diagnostic.CA1819.severity = none
 # CA1034: Nested types should not be visible
 dotnet_diagnostic.CA1034.severity = none
 
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = silent
+
 [*.cshtml]
 indent_size = 2
