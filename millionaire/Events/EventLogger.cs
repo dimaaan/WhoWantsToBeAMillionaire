@@ -52,7 +52,7 @@ namespace Events
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = @"SELECT strftime('%Y', date) as Year, strftime('%m', date) as Month, strftime('%d', date) as Day, COUNT(*) AS Games FROM Events WHERE right = 0 GROUP BY Year, Month, Day ORDER BY date DESC";
+            command.CommandText = @"SELECT strftime('%Y', date, 'localtime') as Year, strftime('%m', date, 'localtime') as Month, strftime('%d', date, 'localtime') as Day, COUNT(*) AS Games FROM Events WHERE right = 0 GROUP BY Year, Month, Day ORDER BY date DESC";
 
             using var reader = command.ExecuteReader();
             while (reader.Read())
