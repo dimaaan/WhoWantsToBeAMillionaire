@@ -2,6 +2,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Events
@@ -43,6 +44,27 @@ namespace Events
                 question: question,
                 hint: hint
             );
+        }
+
+        public IEnumerable<(DateTimeOffset Date, int Games)> GamesPerDayReport()
+        {
+            using var connection = new SqliteConnection(Options.ConnectionString);
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = @"SELECT strftime('%Y', date) as Year, strftime('%m', date) as Month, strftime('%d', date) as Day, COUNT(*) AS Games FROM Events WHERE right = 0 GROUP BY Year, Month, Day ORDER BY date DESC";
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var year = reader.GetInt32(0);
+                var month = reader.GetInt32(1);
+                var day = reader.GetInt32(2);
+                var games = reader.GetInt32(3);
+                var date = new DateTimeOffset(year, month, day, 0, 0, 0, TimeZoneInfo.Local.BaseUtcOffset);
+
+                yield return (date, games);
+            }
         }
 
         /// <summary>

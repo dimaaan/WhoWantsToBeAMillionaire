@@ -4,6 +4,7 @@
 @using Humanizer.Localisation;
 @inject Game gameService
 @inject ISessions sessions
+@inject Events.EventLogger eventLogger
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +20,7 @@
       }
     }
   </style>
+  <script src="~/plotly.js/plotly.min.js" charset="utf-8"></script>
 </head>
 <body>
   @{
@@ -37,5 +39,54 @@
     <br />
     Last activity @idleTimeFormatted ago. At @lastUpdatedFormatted.
   </samp>
+  <div id="chart" width="100%"></div>
+  <script>
+    var data = [@foreach (var i in eventLogger.GamesPerDayReport()) {<text>{ d: new Date(@i.Date.ToUnixTimeMilliseconds()), n:@i.Games},</text>}];
+
+    var trace1 = {
+      type: "scatter",
+      mode: "lines",
+      x: data.map(d => d.d),
+      y: data.map(d => d.n),
+      line: { color: '#17BECF' }
+    }
+
+    var lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    var layout = {
+      title: 'Games per day',
+      xaxis: {
+        range: [lastMonth, new Date()],
+        rangeselector: {
+          buttons: [
+            {
+              count: 1,
+              label: '1 month',
+              step: 'month',
+              stepmode: 'backward',
+              default: true
+            },
+            {
+              count: 6,
+              label: '6 month',
+              step: 'month',
+              stepmode: 'backward'
+            },
+            { step: 'all' }
+          ]
+        },
+        type: 'date',
+        rangeslider: {
+        }
+      },
+      yaxis: {
+        autorange: true,
+        type: 'linear'
+      }
+    };
+
+    Plotly.newPlot('chart', [trace1], layout);
+  </script>
 </body>
 </html>

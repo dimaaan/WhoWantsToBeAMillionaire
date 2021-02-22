@@ -1,10 +1,13 @@
 using Events;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 
@@ -71,7 +74,7 @@ class Startup
             endpoints.MapRazorPages();
         });
 
-        app.UseStaticFiles();
+        app.UsePrecompressedStaticFiles();
 
         if (!Environment.IsDevelopment())
         {
@@ -105,5 +108,38 @@ class Startup
     {
         botApi.DeleteWebhookAsync(cancellationToken).Wait(cancellationToken);
         logger.LogInformation("Webhook removed");
+    }
+}
+
+static class StartupExtensions
+{
+    public static IApplicationBuilder UsePrecompressedStaticFiles(this IApplicationBuilder app)
+    {
+        app.UseRewriter(new RewriteOptions()
+            .AddRewrite(@"(.+)\.js$", "$1.js.gz", true)
+            .AddRewrite(@"(.+)\.css$", "$1.css.gz", true)
+        );
+
+        var mimeTypeProvider = new FileExtensionContentTypeProvider();
+
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            OnPrepareResponse = context =>
+            {
+                var headers = context.Context.Response.Headers;
+
+                if (headers["Content-Type"] == "application/x-gzip")
+                {
+                    var originalName = Path.GetFileNameWithoutExtension(context.File.Name);
+                    if (mimeTypeProvider.TryGetContentType(originalName, out var mimeType))
+                    {
+                        headers.Add("Content-Encoding", "gzip");
+                        headers["Content-Type"] = mimeType;
+                    }
+                }
+            }
+        });
+
+        return app;
     }
 }

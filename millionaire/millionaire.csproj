@@ -35,5 +35,11 @@
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <!-- Using js.gz instead -->
+    <Content Update="wwwroot\**\*.js" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+
 </Project>
