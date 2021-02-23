@@ -50,10 +50,10 @@ class Startup
         static T LoadTexts<T>(string resourceName)
         {
             using var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)
-                ?? throw new Exception($"Embdeded resource {resourceName} not found");
+                ?? throw new Exception($"Embedded resource {resourceName} not found");
 
             return JsonSerializer.Deserialize<T>(new System.IO.StreamReader(stream).ReadToEnd())
-                ?? throw new Exception($"Embdeded resource {resourceName} is empty");
+                ?? throw new Exception($"Embedded resource {resourceName} is empty");
         }
     }
 
@@ -98,10 +98,10 @@ class Startup
         }
 
         if (!String.IsNullOrWhiteSpace(webHookInfo.url))
-            logger.LogWarning("Tegeram webhook already set to {Url}. Overriding...", webHookInfo.url);
+            logger.LogWarning("Tegeram webhook already set to {Ur}. Overriding...", webHookInfo.url);
 
         botApi.SetWebHookAsync(telegramOptions.WebhookAddress, telegramOptions.Certificate, cancellationToken).Wait(cancellationToken);
-        logger.LogInformation("Webhook set: {Url}", telegramOptions.WebhookAddress);
+        logger.LogInformation("Webhook set: {Uri}", telegramOptions.WebhookAddress);
     }
 
     static void RemoveWebHook(BotApi.IClient botApi, ILogger<Startup> logger, CancellationToken cancellationToken)
