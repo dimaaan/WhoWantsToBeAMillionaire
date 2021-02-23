@@ -41,14 +41,24 @@
   </samp>
   <div id="chart" width="100%"></div>
   <script>
-    var data = [@foreach (var i in eventLogger.GamesPerDayReport()) {<text>{ d: new Date(@i.Date.ToUnixTimeMilliseconds()), n:@i.Games},</text>}];
+    var data = [@foreach (var i in eventLogger.GamesPerDayReport()) {<text>{ d: new Date(@i.Date.ToUnixTimeMilliseconds()), s:@i.GamesStarted, f: @i.GamesFinished},</text>}];
 
-    var trace1 = {
+    var started = {
+      name: 'Games started',
       type: "scatter",
       mode: "lines",
       x: data.map(d => d.d),
-      y: data.map(d => d.n),
-      line: { color: '#17BECF' }
+      y: data.map(d => d.s),
+      line: { color: '#8BBEE8FF' }
+    }
+
+    var finished = {
+      name: 'Games finished',
+      type: "scatter",
+      mode: "lines",
+      x: data.map(d => d.d),
+      y: data.map(d => d.f),
+      line: { color: '#A8D5BAFF' }
     }
 
     var lastMonth = new Date();
@@ -86,7 +96,7 @@
       }
     };
 
-    Plotly.newPlot('chart', [trace1], layout);
+    Plotly.newPlot('chart', [started, finished], layout);
   </script>
 </body>
 </html>

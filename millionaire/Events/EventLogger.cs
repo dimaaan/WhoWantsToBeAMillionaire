@@ -46,13 +46,22 @@ namespace Events
             );
         }
 
-        public IEnumerable<(DateTimeOffset Date, int Games)> GamesPerDayReport()
+        public IEnumerable<(DateTimeOffset Date, int GamesStarted, int GamesFinished)> GamesPerDayReport()
         {
             using var connection = new SqliteConnection(Options.ConnectionString);
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = @"SELECT strftime('%Y', date, 'localtime') as Year, strftime('%m', date, 'localtime') as Month, strftime('%d', date, 'localtime') as Day, COUNT(*) AS Games FROM Events WHERE right = 0 GROUP BY Year, Month, Day ORDER BY date DESC";
+            command.CommandText = @"SELECT
+strftime('%Y', date, 'localtime') as Year,
+strftime('%m', date, 'localtime') as Month,
+strftime('%d', date, 'localtime') as Day,
+COUNT(CASE WHEN started = 1 THEN 1 ELSE null END) AS GamesStarted,
+COUNT(CASE WHEN right = 0 THEN 1 ELSE null END) AS GamesFinished
+FROM Events
+WHERE right = 0 OR started = 1
+GROUP BY Year, Month, Day
+ORDER BY date DESC";
 
             using var reader = command.ExecuteReader();
             while (reader.Read())
@@ -60,10 +69,11 @@ namespace Events
                 var year = reader.GetInt32(0);
                 var month = reader.GetInt32(1);
                 var day = reader.GetInt32(2);
-                var games = reader.GetInt32(3);
+                var started = reader.GetInt32(3);
+                var finished = reader.GetInt32(4);
                 var date = new DateTimeOffset(year, month, day, 0, 0, 0, TimeZoneInfo.Local.BaseUtcOffset);
 
-                yield return (date, games);
+                yield return (date, started, finished);
             }
         }
 
