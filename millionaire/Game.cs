@@ -454,7 +454,7 @@ public sealed class Game
         }
         catch (TooManyRequestsException e)
         {
-            // This simple retry policy is just enought.
+            // This simple retry policy is just enough.
             // In case Circuit Breaker is needed, use Polly, but be aware:
             // 1. there is no RetryAfter HTTP header support out-of-the box
             // 2. working on HttpClient level, there will be no typed Dtos, only HttpContent object
