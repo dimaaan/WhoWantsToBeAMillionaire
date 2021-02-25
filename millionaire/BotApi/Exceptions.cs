@@ -16,6 +16,14 @@ namespace BotApi
         }
     }
 
+    class ForbiddenException : BotApiException
+    {
+        public ForbiddenException(string description, int code)
+            : base(description, code)
+        {
+        }
+    }
+
     class TooManyRequestsException : BotApiException
     {
         public TimeSpan? RetryAfter { get; }

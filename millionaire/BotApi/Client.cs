@@ -111,20 +111,25 @@ namespace BotApi
             if (response.ok)
                 return response;
 
+            var errCode = response.error_code;
             var errMsg = !String.IsNullOrWhiteSpace(response.description)
                ? response.description
                : "No description provided";
 
             throw response.error_code switch
             {
+                403 => new ForbiddenException(
+                    description: errMsg,
+                    code: errCode
+                ),
                 429 => new TooManyRequestsException(
                     description: errMsg,
-                    code: response.error_code,
+                    code: errCode,
                     retryAfter: responseMessage.Headers.RetryAfter?.Delta
                 ),
                 _ => new BotApiException(
                   description: errMsg,
-                  code: response.error_code
+                  code: errCode
               ),
             };
         }

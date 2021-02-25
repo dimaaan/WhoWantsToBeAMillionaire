@@ -441,6 +441,17 @@ public sealed class Game
         {
             await BotApi.SendMessageAsync(payload, cancellationToken);
         }
+        catch (ForbiddenException e)
+        {
+            // Bot can receive messages from chat, from which he was already kicked.
+            // This happens because of delay between sensing message by user and receiving it by bot.
+            // Delay may be caused by Telegram rate limits or slow network or bot redeploy.
+            // Replying to that message will return "Forbidden" error.
+            // Not much we can do here.
+            // Either ignore it or forward to private chat.
+
+            Logger.LogInformation("Ignore message in chat {ChatId} because: {Text}", msg.chat.id, e.Message);
+        }
         catch (TooManyRequestsException e)
         {
             // This simple retry policy is just enought.
