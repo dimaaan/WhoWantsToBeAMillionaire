@@ -61,7 +61,7 @@ namespace BotApi
     );
 
     public record User(
-        int id,
+        long id,
         bool is_bot,
         string first_name,
         string? last_name,
