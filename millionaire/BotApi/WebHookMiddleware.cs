@@ -20,7 +20,7 @@ namespace BotApi
 
         public async Task Invoke(HttpContext context)
         {
-            var update = await JsonSerializer.DeserializeAsync<Update>(context.Request.Body, null, context.RequestAborted);
+            var update = await JsonSerializer.DeserializeAsync<Update>(context.Request.Body, (JsonSerializerOptions?)null, context.RequestAborted);
 
             if (update == null)
             {

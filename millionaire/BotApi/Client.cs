@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace BotApi
 {
@@ -23,7 +24,7 @@ namespace BotApi
     {
         readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
         {
-            IgnoreNullValues = true
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
         readonly HttpClient HttpClient;
 
@@ -105,7 +106,7 @@ namespace BotApi
         static async Task<T> DeserializeAsync<T>(HttpResponseMessage responseMessage, CancellationToken cancellationToken)
             where T : BotApiEmptyResponse
         {
-            var response = await responseMessage.Content.ReadFromJsonAsync<T>(null, cancellationToken)
+            var response = await responseMessage.Content.ReadFromJsonAsync<T>((JsonSerializerOptions?)null, cancellationToken)
                 ?? throw new Exception("Unexpected empty response");
 
             if (response.ok)
